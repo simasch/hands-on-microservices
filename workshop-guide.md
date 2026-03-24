@@ -48,7 +48,7 @@ We're building an **Online Bookstore** with these services:
 
 ---
 
-## Section 0: Setup Verification (15 min)
+## Section 0: Setup Verification (10 min)
 
 Verify your environment by building and running the catalog service:
 
@@ -305,7 +305,7 @@ curl http://localhost:8080/api/orders
 
 ---
 
-## Section 4: Centralized Configuration (25 min)
+## Section 4: Centralized Configuration (15 min)
 
 ### Exercise 4A: Config Server Setup (10 min)
 
@@ -382,10 +382,6 @@ curl http://localhost:8081/api/greeting
 
 ---
 
-## BREAK (10 min)
-
----
-
 ## Section 5: Resilience Patterns (25 min)
 
 ### Exercise 5A: Circuit Breaker (15 min)
@@ -449,7 +445,7 @@ curl http://localhost:8082/actuator/health
 
 ---
 
-## Section 6: Observability (20 min)
+## Section 6: Observability (15 min)
 
 ### Exercise 6A: Health Checks & Actuator (8 min)
 

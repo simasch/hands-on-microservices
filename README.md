@@ -115,13 +115,14 @@ Then follow the **[Workshop Guide](workshop-guide.md)** for step-by-step exercis
 
 | Section | Topic                              | Duration |
 |---------|------------------------------------|----------|
-| 0       | Setup Verification                 | 15 min   |
+| 0       | Setup Verification                 | 10 min   |
 | 1       | Microservices Mental Model         | 15 min   |
 | 2       | Building the Core Services         | 35 min   |
+|         | *Break*                            | 10 min   |
 | 3       | Service Discovery & API Gateway    | 30 min   |
-| 4       | Centralized Configuration          | 25 min   |
+| 4       | Centralized Configuration          | 15 min   |
 | 5       | Resilience Patterns                | 25 min   |
-| 6       | Observability                      | 20 min   |
+| 6       | Observability                      | 15 min   |
 | 7       | Docker Compose & Full System       | 10 min   |
 | 8       | When (Not) to Use Microservices    | 15 min   |
 

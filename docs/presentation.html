@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hands-on Microservices with Spring Boot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/white.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/monokai.min.css">
+    <style>
+        :root {
+            --r-heading-color: #1a1a2e;
+            --r-link-color: #6c63ff;
+            --r-selection-background-color: #6c63ff;
+        }
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .reveal h1 { font-size: 2.2em; }
+        .reveal h2 { font-size: 1.6em; }
+        .reveal h3 { font-size: 1.2em; }
+        .reveal pre { width: 100%; font-size: 0.55em; }
+        .reveal pre code { max-height: 500px; }
+        .reveal ul { font-size: 0.85em; }
+        .reveal .small { font-size: 0.7em; }
+        .reveal .highlight { color: #6c63ff; font-weight: bold; }
+        .reveal .warning { color: #e74c3c; font-weight: bold; }
+        .reveal .success { color: #27ae60; font-weight: bold; }
+        .reveal table { font-size: 0.7em; margin: 0 auto; }
+        .reveal table th { background: #1a1a2e; color: white; padding: 8px 16px; }
+        .reveal table td { padding: 8px 16px; border-bottom: 1px solid #ddd; }
+        .reveal .two-col { display: flex; gap: 40px; text-align: left; }
+        .reveal .two-col > div { flex: 1; }
+        .reveal .section-title { background: #1a1a2e; color: white; }
+        .reveal .section-title h2 { color: white; }
+        .reveal .section-title p { color: #ccc; }
+        .reveal blockquote { background: #f8f9fa; border-left: 4px solid #6c63ff; padding: 20px; font-style: normal; font-size: 0.85em; width: 85%; }
+    </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ==================== TITLE ==================== -->
+<section>
+    <h1>Hands-on Microservices<br>with Spring Boot</h1>
+    <p>Build a realistic microservices system from scratch</p>
+    <p class="small">Spring Boot 4.0 &bull; Spring Cloud 2025.1 &bull; Java 25</p>
+</section>
+
+<section>
+    <h2>Workshop Goals</h2>
+    <ul>
+        <li>Build and run <span class="highlight">multiple Spring Boot microservices</span> locally</li>
+        <li>Use <span class="highlight">service discovery</span> and route traffic via an <span class="highlight">API gateway</span></li>
+        <li>Centralize configuration with <span class="highlight">Spring Cloud Config</span></li>
+        <li>Apply <span class="highlight">resilience patterns</span> and handle failures gracefully</li>
+        <li>Add <span class="highlight">observability</span> with logs, metrics, and health checks</li>
+        <li>Understand when microservices make sense &mdash; and when they don't</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Agenda</h2>
+    <table>
+        <thead><tr><th>#</th><th>Topic</th><th>Time</th></tr></thead>
+        <tbody>
+            <tr><td>0</td><td>Setup Verification</td><td>10 min</td></tr>
+            <tr><td>1</td><td>Microservices Mental Model</td><td>15 min</td></tr>
+            <tr><td>2</td><td>Building the Core Services</td><td>35 min</td></tr>
+            <tr><td></td><td><em>Break</em></td><td>10 min</td></tr>
+            <tr><td>3</td><td>Service Discovery & API Gateway</td><td>30 min</td></tr>
+            <tr><td>4</td><td>Centralized Configuration</td><td>15 min</td></tr>
+            <tr><td>5</td><td>Resilience Patterns</td><td>25 min</td></tr>
+            <tr><td>6</td><td>Observability</td><td>15 min</td></tr>
+            <tr><td>7</td><td>Docker Compose & Full System</td><td>10 min</td></tr>
+            <tr><td>8</td><td>When (Not) to Use Microservices</td><td>15 min</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- ==================== SECTION 0: SETUP ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 0</h2>
+    <p style="color:#ccc">Setup Verification</p>
+</section>
+
+<section>
+    <h2>Prerequisites Check</h2>
+    <pre><code class="language-bash">java -version    # Java 25+
+mvn -version     # Maven 3.9+
+docker info      # Docker Desktop running
+git --version    # Git installed</code></pre>
+    <br>
+    <h3>Verify the build</h3>
+    <pre><code class="language-bash"># From the project root
+mvn clean compile
+
+# Start a service
+mvn -pl catalog-service spring-boot:run</code></pre>
+    <p class="small">Open <code>http://localhost:8081/api/books</code> &mdash; expect a 404 (not implemented yet)</p>
+</section>
+
+<!-- ==================== SECTION 1: MENTAL MODEL ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 1</h2>
+    <p style="color:#ccc">Microservices Mental Model</p>
+</section>
+
+<section>
+    <h2>What is a Microservice?</h2>
+    <blockquote>
+        An independently deployable service organized around a <strong>business capability</strong>,
+        owning its own data, communicating over the network.
+    </blockquote>
+    <br>
+    <ul>
+        <li><span class="highlight">Independently deployable</span> &mdash; ship without coordinating with other teams</li>
+        <li><span class="highlight">Business capability</span> &mdash; not a technical layer, a domain boundary</li>
+        <li><span class="highlight">Owns its data</span> &mdash; no shared database</li>
+    </ul>
+</section>
+
+<section>
+    <h2>Monolith vs. Microservices</h2>
+    <div class="two-col">
+        <div>
+            <h3 class="success">Monolith</h3>
+            <ul>
+                <li>Simple to develop and deploy</li>
+                <li>Easy local debugging</li>
+                <li>One database, one codebase</li>
+                <li>No network latency between modules</li>
+            </ul>
+        </div>
+        <div>
+            <h3 class="highlight">Microservices</h3>
+            <ul>
+                <li>Independent scaling</li>
+                <li>Team autonomy</li>
+                <li>Technology flexibility</li>
+                <li>Fault isolation</li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <p><span class="warning">It's a trade-off, not an upgrade.</span></p>
+</section>
+
+<section>
+    <h2>The Cost of Microservices</h2>
+    <ul>
+        <li><span class="warning">Network is unreliable</span> &mdash; calls fail, latency varies</li>
+        <li><span class="warning">Distributed data</span> &mdash; no joins across services, eventual consistency</li>
+        <li><span class="warning">Operational complexity</span> &mdash; deploy, monitor, debug N services</li>
+        <li><span class="warning">Testing is harder</span> &mdash; integration tests span services</li>
+    </ul>
+    <br>
+    <blockquote>
+        Don't use microservices because they're trendy.<br>
+        Use them when the organizational and scaling benefits outweigh the complexity.
+    </blockquote>
+</section>
+
+<section>
+    <h2>Our Domain: Online Bookstore</h2>
+    <pre style="text-align:left; font-size:0.5em; background: #f8f9fa; padding: 20px; border-radius: 8px;"><code style="background: transparent;">
+    ┌──────────────┐      ┌──────────────────┐      ┌──────────────────┐
+    │              │      │                  │      │                  │
+    │  API Gateway ├─────►│ catalog-service  │      │  Config Server   │
+    │  (8080)      ├──┐   │ (8081)           │      │  (8888)          │
+    │              │  │   │ Books CRUD       │      │                  │
+    └──────┬───────┘  │   └──────────────────┘      └──────────────────┘
+           │          │
+           │          │   ┌──────────────────┐      ┌──────────────────┐
+           │          └──►│                  │      │                  │
+           │              │  order-service   ├─────►│ catalog-service  │
+           │              │  (8082)          │      │ (validates books)│
+           │              └──────────────────┘      └──────────────────┘
+           │
+           │          ┌──────────────────┐
+           └─────────►│ Discovery Server │
+                      │ (Eureka - 8761)  │
+                      └──────────────────┘
+    </code></pre>
+    <p class="small">Each service owns its own H2 database &mdash; <strong>database per service</strong> pattern</p>
+</section>
+
+<section>
+    <h2>Key Design Decisions</h2>
+    <ul>
+        <li><strong>catalog-service</strong> &mdash; source of truth for books (CRUD)</li>
+        <li><strong>order-service</strong> &mdash; places orders, validates books by calling catalog-service</li>
+        <li><strong>api-gateway</strong> &mdash; single entry point for all clients</li>
+        <li>Each service has its <span class="highlight">own database</span></li>
+        <li>Services communicate via <span class="highlight">synchronous HTTP</span> (RestClient)</li>
+    </ul>
+    <br>
+    <blockquote>
+        This bookshop is too small for microservices in real life.<br>
+        We're building it this way <strong>for learning</strong>.
+    </blockquote>
+</section>
+
+<!-- ==================== SECTION 2: CORE SERVICES ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 2</h2>
+    <p style="color:#ccc">Building the Core Services</p>
+</section>
+
+<section>
+    <h2>What's Already Provided</h2>
+    <div class="two-col">
+        <div>
+            <h3>catalog-service</h3>
+            <ul>
+                <li><code>Book</code> entity (JPA)</li>
+                <li><code>BookRepository</code></li>
+                <li><code>BookNotFoundException</code></li>
+                <li><code>data.sql</code> (5 books)</li>
+            </ul>
+        </div>
+        <div>
+            <h3>order-service</h3>
+            <ul>
+                <li><code>Order</code> + <code>OrderItem</code> entities</li>
+                <li><code>OrderRepository</code></li>
+                <li><code>CreateOrderRequest</code> DTO</li>
+                <li><code>BookResponse</code> DTO</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Exercise: Catalog REST API</h2>
+    <p>Complete <code>BookController.java</code></p>
+    <pre><code class="language-java">@RestController
+@RequestMapping("/api/books")
+public class BookController {
+
+    private final BookRepository repository;
+
+    // TODO 1: GET /api/books — return all books
+
+    // TODO 2: GET /api/books/{isbn} — return by ISBN
+    //         throw BookNotFoundException if not found
+}</code></pre>
+    <p class="small">Time: ~10 minutes</p>
+</section>
+
+<section>
+    <h2>Exercise: Inter-Service Communication</h2>
+    <p>Complete <code>BookClient.java</code> &mdash; call catalog-service using <strong>RestClient</strong></p>
+    <pre><code class="language-java">// TODO 3: Call catalog-service to get a book by ISBN
+public Optional&lt;BookResponse&gt; getBookByIsbn(String isbn) {
+    BookResponse book = restClient.get()
+            .uri("/api/books/{isbn}", isbn)
+            .retrieve()
+            .body(BookResponse.class);
+    return Optional.ofNullable(book);
+}</code></pre>
+    <p class="small">Note the hardcoded <code>http://localhost:8081</code> &mdash; we'll fix this in Section 3</p>
+</section>
+
+<section>
+    <h2>Exercise: Order Business Logic</h2>
+    <p>Complete <code>OrderService.java</code> and <code>OrderController.java</code></p>
+    <pre><code class="language-java">// TODO 4: For each item, validate book exists via BookClient
+//          then create OrderItems and save the Order
+
+// TODO 5: POST /api/orders
+// TODO 6: GET /api/orders</code></pre>
+    <br>
+    <h3>Verify</h3>
+    <pre><code class="language-bash">curl http://localhost:8081/api/books
+curl -X POST http://localhost:8082/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 2}]}'</code></pre>
+</section>
+
+<section>
+    <h2>Discussion: What's Wrong?</h2>
+    <pre><code class="language-java">this.restClient = builder
+        .baseUrl("http://localhost:8081") // <-- hardcoded!
+        .build();</code></pre>
+    <br>
+    <ul>
+        <li>What if catalog-service moves to a different host/port?</li>
+        <li>What if we have multiple instances?</li>
+        <li>How do we discover services dynamically?</li>
+    </ul>
+    <br>
+    <p class="highlight">We need Service Discovery &rarr;</p>
+</section>
+
+<!-- ==================== SECTION 3: DISCOVERY & GATEWAY ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 3</h2>
+    <p style="color:#ccc">Service Discovery & API Gateway</p>
+</section>
+
+<section>
+    <h2>Service Discovery with Eureka</h2>
+    <div class="two-col">
+        <div>
+            <h3>How it works</h3>
+            <ol>
+                <li>Services <strong>register</strong> with Eureka on startup</li>
+                <li>Services <strong>query</strong> Eureka to find other services</li>
+                <li>Eureka sends <strong>heartbeats</strong> to detect failures</li>
+                <li>Client-side <strong>load balancing</strong> distributes traffic</li>
+            </ol>
+        </div>
+        <div>
+            <h3>No more hardcoded URLs</h3>
+            <pre><code class="language-java">// Before
+.baseUrl("http://localhost:8081")
+
+// After
+.baseUrl("http://catalog-service")</code></pre>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Exercise: Register with Eureka</h2>
+    <p>Add to <code>application.properties</code> (both services):</p>
+    <pre><code class="language-properties"># TODO 7
+eureka.client.service-url.defaultZone=http://localhost:8761/eureka/</code></pre>
+    <br>
+    <p>Update <code>BookClient</code> to use service name + load balancing:</p>
+    <pre><code class="language-java">// TODO 8: Change to service name
+.baseUrl("http://catalog-service")
+
+// Plus: create a @LoadBalanced RestClient.Builder bean</code></pre>
+    <br>
+    <p class="small">Check Eureka dashboard: <code>http://localhost:8761</code></p>
+</section>
+
+<section>
+    <h2>API Gateway</h2>
+    <ul>
+        <li><strong>Single entry point</strong> for all clients</li>
+        <li>Clients don't need to know individual service URLs</li>
+        <li>Cross-cutting concerns: auth, rate limiting, logging</li>
+        <li>Using <strong>Spring Cloud Gateway Server MVC</strong> (Tomcat, no reactive)</li>
+    </ul>
+    <pre><code class="language-plaintext">Client → Gateway (8080) → Eureka → catalog-service (8081)
+                                  → order-service (8082)</code></pre>
+</section>
+
+<section>
+    <h2>Exercise: Gateway Routes</h2>
+    <p>Complete <code>GatewayRouteConfig.java</code></p>
+    <pre><code class="language-java">// TODO 9
+@Bean
+public RouterFunction&lt;ServerResponse&gt; gatewayRoutes() {
+    return route("catalog_route")
+            .GET("/api/books/**", http())
+            .before(uri("lb://catalog-service"))
+        .build()
+        .and(
+            route("order_post_route")
+                .POST("/api/orders", http())
+                .before(uri("lb://order-service"))
+            .build()
+        )
+        .and(
+            route("order_get_route")
+                .GET("/api/orders", http())
+                .before(uri("lb://order-service"))
+            .build()
+        );
+}</code></pre>
+    <p class="small"><code>lb://</code> = client-side load balancing via Eureka</p>
+</section>
+
+<!-- ==================== SECTION 4: CONFIG ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 4</h2>
+    <p style="color:#ccc">Centralized Configuration</p>
+</section>
+
+<section>
+    <h2>Why Centralized Config?</h2>
+    <ul>
+        <li>Configuration scattered across N services</li>
+        <li>Environment-specific values (dev, staging, prod)</li>
+        <li>Secrets management</li>
+        <li><span class="highlight">Change config without redeploying</span></li>
+    </ul>
+    <br>
+    <pre><code class="language-plaintext">config-server (8888)
+  └── config-repo/
+        ├── application.properties      ← shared defaults
+        ├── catalog-service.properties  ← per-service config
+        └── order-service.properties</code></pre>
+</section>
+
+<section>
+    <h2>Exercise: Config Server</h2>
+    <p>Add config to <code>config-repo/catalog-service.properties</code>:</p>
+    <pre><code class="language-properties"># TODO 10
+spring.datasource.url=jdbc:h2:mem:catalogdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.jpa.hibernate.ddl-auto=create-drop
+
+app.greeting=Hello from Config Server!</code></pre>
+    <br>
+    <p>The config client is pre-configured:</p>
+    <pre><code class="language-properties">spring.config.import=optional:configserver:http://localhost:8888</code></pre>
+    <p class="small">The <code>optional:</code> prefix lets the app start even if Config Server is down</p>
+</section>
+
+<section>
+    <h2>Exercise: Dynamic Refresh</h2>
+    <pre><code class="language-java">// TODO 12
+@RestController
+@RefreshScope
+public class GreetingController {
+
+    @Value("${app.greeting:Hello from local config!}")
+    private String greeting;
+
+    @GetMapping("/api/greeting")
+    public String greeting() { return greeting; }
+}</code></pre>
+    <br>
+    <pre><code class="language-bash"># Change app.greeting, then:
+curl -X POST http://localhost:8081/actuator/refresh
+curl http://localhost:8081/api/greeting
+# → Returns the new value without restart!</code></pre>
+</section>
+
+<!-- ==================== SECTION 5: RESILIENCE ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 5</h2>
+    <p style="color:#ccc">Resilience Patterns</p>
+</section>
+
+<section>
+    <h2>The Network Will Fail</h2>
+    <ul>
+        <li>Services go down</li>
+        <li>Network partitions happen</li>
+        <li>Downstream services get slow</li>
+        <li>One failure can <span class="warning">cascade</span> through the entire system</li>
+    </ul>
+    <br>
+    <blockquote>
+        The question isn't <em>if</em> things will fail, but <em>how your system behaves when they do</em>.
+    </blockquote>
+</section>
+
+<section>
+    <h2>Circuit Breaker Pattern</h2>
+    <pre style="text-align:center; font-size:0.55em; background: #f8f9fa; padding: 20px; border-radius: 8px;"><code style="background: transparent;">
+  CLOSED                    OPEN                   HALF-OPEN
+  ┌─────┐   failure      ┌─────┐   timeout      ┌─────────┐
+  │     │   threshold    │     │   expires      │         │
+  │  ●  │ ────────────►  │  ●  │ ────────────►  │    ●    │
+  │     │                │     │                │         │
+  └─────┘                └─────┘                └─────────┘
+  Requests               Requests               Test requests
+  pass through           fail fast              allowed through
+                                                 │
+                              success ◄──────────┘ → back to CLOSED
+                              failure ──────────── → back to OPEN
+    </code></pre>
+</section>
+
+<section>
+    <h2>Exercise: Circuit Breaker + Retry</h2>
+    <pre><code class="language-java">// TODO 13 + 15
+@CircuitBreaker(name = "catalogService",
+                fallbackMethod = "getBookFallback")
+@Retry(name = "catalogService")
+public Optional&lt;BookResponse&gt; getBookByIsbn(String isbn) {
+    // ... existing RestClient call
+}
+
+// TODO 14: Fallback method
+private Optional&lt;BookResponse&gt; getBookFallback(
+        String isbn, Throwable t) {
+    log.warn("Fallback: catalog-service unavailable "
+           + "for ISBN {}: {}", isbn, t.getMessage());
+    return Optional.empty();
+}</code></pre>
+    <br>
+    <pre><code class="language-properties"># Pre-configured in application.properties
+resilience4j.circuitbreaker.instances.catalogService.sliding-window-size=5
+resilience4j.circuitbreaker.instances.catalogService.failure-rate-threshold=50
+resilience4j.circuitbreaker.instances.catalogService.wait-duration-in-open-state=10s
+resilience4j.retry.instances.catalogService.max-attempts=3</code></pre>
+</section>
+
+<section>
+    <h2>Demo: Watch It Break (Gracefully)</h2>
+    <pre><code class="language-bash"># 1. Place an order — works
+curl -X POST http://localhost:8080/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 1}]}'
+
+# 2. Stop catalog-service (Ctrl+C)
+
+# 3. Try again — fails gracefully (no stack trace)
+curl -X POST http://localhost:8080/api/orders ...
+
+# 4. Check circuit breaker state
+curl http://localhost:8082/actuator/health | jq .</code></pre>
+</section>
+
+<!-- ==================== SECTION 6: OBSERVABILITY ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 6</h2>
+    <p style="color:#ccc">Observability</p>
+</section>
+
+<section>
+    <h2>The Three Pillars</h2>
+    <div class="two-col">
+        <div>
+            <h3>Logs</h3>
+            <p>What happened?</p>
+            <p class="small">Structured logging (ECS format)</p>
+        </div>
+        <div>
+            <h3>Metrics</h3>
+            <p>How is it performing?</p>
+            <p class="small">Micrometer + Actuator</p>
+        </div>
+    </div>
+    <br>
+    <div class="two-col">
+        <div>
+            <h3>Health Checks</h3>
+            <p>Is it alive?</p>
+            <p class="small">Actuator /health endpoint</p>
+        </div>
+        <div>
+            <h3 style="color: #999">Traces</h3>
+            <p style="color: #999">Where did time go?</p>
+            <p class="small" style="color: #999">(Not covered today)</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Exercise: Observability</h2>
+    <pre><code class="language-properties"># TODO 16: Expose actuator endpoints
+management.endpoints.web.exposure.include=health,info,metrics,circuitbreakers,refresh
+management.endpoint.health.show-details=always
+
+# TODO 17: Structured logging
+logging.structured.format.console=ecs</code></pre>
+    <br>
+    <pre><code class="language-java">// TODO 18: Structured log statement
+log.info("Placing order for {} items", request.items().size());
+
+// TODO 19: Custom metric
+meterRegistry.counter("orders.placed", "status", "success").increment();</code></pre>
+    <br>
+    <pre><code class="language-bash">curl http://localhost:8082/actuator/health | jq .
+curl http://localhost:8082/actuator/metrics/orders.placed</code></pre>
+</section>
+
+<!-- ==================== SECTION 7: DOCKER ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 7</h2>
+    <p style="color:#ccc">Docker Compose & Full System</p>
+</section>
+
+<section>
+    <h2>Running Everything in Containers</h2>
+    <pre><code class="language-bash">mvn clean package -DskipTests
+docker compose up --build</code></pre>
+    <br>
+    <pre><code class="language-yaml">services:
+  discovery-server:
+    build: ./discovery-server
+    ports: ["8761:8761"]
+  config-server:
+    build: ./config-server
+    depends_on:
+      discovery-server: { condition: service_healthy }
+  catalog-service:
+    build: ./catalog-service
+    depends_on:
+      discovery-server: { condition: service_healthy }
+      config-server: { condition: service_healthy }
+  # ... order-service, api-gateway</code></pre>
+    <p class="small">Health checks ensure correct startup order</p>
+</section>
+
+<section>
+    <h2>A Note on Startup Order</h2>
+    <blockquote>
+        In production, don't rely on <code>depends_on</code>.<br><br>
+        Services should be <strong>resilient to startup order</strong> &mdash;
+        that's what circuit breakers and retries from Section 5 are for.
+    </blockquote>
+</section>
+
+<!-- ==================== SECTION 8: DISCUSSION ==================== -->
+<section data-background-color="#1a1a2e">
+    <h2 style="color:white">Section 8</h2>
+    <p style="color:#ccc">When (Not) to Use Microservices</p>
+</section>
+
+<section>
+    <h2>This Bookshop Should Be a Monolith</h2>
+    <ul>
+        <li>Small team, simple domain</li>
+        <li>5 services to deploy instead of 1</li>
+        <li>Network calls where function calls would do</li>
+        <li>More infrastructure than business logic</li>
+    </ul>
+    <br>
+    <p><strong>So when <em>should</em> you use microservices?</strong></p>
+</section>
+
+<section>
+    <h2>Consider Microservices When...</h2>
+    <ul>
+        <li><span class="highlight">Multiple teams</span> need to ship independently</li>
+        <li>Parts of the system need to <span class="highlight">scale differently</span></li>
+        <li>Different parts have <span class="highlight">different technology needs</span></li>
+        <li>You need <span class="highlight">fault isolation</span> between components</li>
+        <li>Your monolith has become a <span class="highlight">deployment bottleneck</span></li>
+    </ul>
+    <br>
+    <blockquote>
+        Start with a monolith. Split when you have a reason to.
+    </blockquote>
+</section>
+
+<section>
+    <h2>The Distributed Monolith Anti-Pattern</h2>
+    <ul>
+        <li>Services that <span class="warning">must be deployed together</span></li>
+        <li>Shared databases between services</li>
+        <li>Tight coupling via synchronous call chains</li>
+        <li>All the pain of microservices, none of the benefits</li>
+    </ul>
+    <br>
+    <blockquote>
+        If you can't deploy a service independently,<br>it's not a microservice &mdash; it's a distributed monolith.
+    </blockquote>
+</section>
+
+<section>
+    <h2>What We Did NOT Cover</h2>
+    <ul>
+        <li>Distributed transactions & sagas</li>
+        <li>Event-driven communication (Kafka, RabbitMQ)</li>
+        <li>API versioning</li>
+        <li>Security (OAuth2 / JWT)</li>
+        <li>Distributed tracing (Zipkin / Tempo)</li>
+        <li>Kubernetes deployment</li>
+        <li>Contract testing</li>
+    </ul>
+    <br>
+    <p class="small">Each of these deserves its own workshop!</p>
+</section>
+
+<section>
+    <h2>What You Built Today</h2>
+    <ul>
+        <li>2 business services with REST APIs and inter-service calls</li>
+        <li>Service discovery with Eureka</li>
+        <li>API Gateway with Spring Cloud Gateway MVC</li>
+        <li>Centralized configuration with dynamic refresh</li>
+        <li>Circuit breaker + retry for resilience</li>
+        <li>Health checks, structured logging, and custom metrics</li>
+        <li>Docker Compose for the full system</li>
+    </ul>
+</section>
+
+<section>
+    <h1>Q&A</h1>
+    <p>Thank you!</p>
+    <br>
+    <p class="small">Workshop guide: <code>docs/workshop-guide.md</code></p>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/highlight.min.js"></script>
+<script>
+    Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        transition: 'slide',
+        plugins: [RevealHighlight]
+    });
+</script>
+</body>
+</html>

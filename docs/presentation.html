@@ -7,33 +7,216 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reset.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/white.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/highlight/idea.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --r-heading-color: #1a1a2e;
-            --r-link-color: #6c63ff;
-            --r-selection-background-color: #6c63ff;
+            --spring-green: #6db33f;
+            --spring-dark: #191e1e;
+            --spring-light-green: #e8f5e0;
+            --spring-medium-green: #4a8c2a;
+            --text-primary: #191e1e;
+            --text-secondary: #4a5568;
+            --bg-warm: #fafaf9;
+            --bg-code: #f6f8fa;
+            --border-light: #e2e8f0;
+            --warning-red: #dc2626;
+            --warning-bg: #fef2f2;
+            --info-blue: #2563eb;
+
+            --r-main-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --r-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --r-code-font: 'JetBrains Mono', 'Fira Code', monospace;
+            --r-heading-color: var(--spring-dark);
+            --r-main-color: var(--text-primary);
+            --r-link-color: var(--spring-green);
+            --r-link-color-hover: var(--spring-medium-green);
+            --r-selection-background-color: var(--spring-light-green);
+            --r-selection-color: var(--spring-dark);
+            --r-heading-font-weight: 600;
+            --r-heading-letter-spacing: -0.02em;
+            --r-main-font-size: 32px;
         }
-        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
-        .reveal h1 { font-size: 2.2em; }
-        .reveal h2 { font-size: 1.6em; }
-        .reveal h3 { font-size: 1.2em; }
-        .reveal pre { width: 100%; font-size: 0.55em; }
-        .reveal pre code { max-height: 500px; }
-        .reveal ul { font-size: 0.85em; }
-        .reveal .small { font-size: 0.7em; }
-        .reveal .highlight { color: #6c63ff; font-weight: bold; }
-        .reveal .warning { color: #e74c3c; font-weight: bold; }
-        .reveal .success { color: #27ae60; font-weight: bold; }
-        .reveal table { font-size: 0.7em; margin: 0 auto; }
-        .reveal table th { background: #1a1a2e; color: white; padding: 8px 16px; }
-        .reveal table td { padding: 8px 16px; border-bottom: 1px solid #ddd; }
-        .reveal .two-col { display: flex; gap: 40px; text-align: left; }
+
+        .reveal {
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+        .reveal h1 { font-size: 2.4em; font-weight: 700; }
+        .reveal h2 { font-size: 1.6em; font-weight: 600; margin-bottom: 0.6em; }
+        .reveal h3 { font-size: 1.05em; font-weight: 600; color: var(--text-secondary); }
+
+        /* Spring leaf accent under h2 */
+        .reveal section > h2::after {
+            content: '';
+            display: block;
+            width: 48px;
+            height: 3px;
+            background: var(--spring-green);
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+        .reveal section[data-background-color] > h2::after { display: none; }
+
+        /* Lists */
+        .reveal ul, .reveal ol {
+            font-size: 0.82em;
+            line-height: 1.7;
+        }
+        .reveal li { margin-bottom: 0.3em; }
+        .reveal li::marker { color: var(--spring-green); }
+
+        /* Code blocks */
+        .reveal pre {
+            width: 100%;
+            font-size: 0.52em;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin: 0.6em 0;
+        }
+        .reveal pre code {
+            max-height: 480px;
+            padding: 16px 20px;
+            line-height: 1.55;
+            background: var(--bg-code);
+            border-radius: 8px;
+            font-family: var(--r-code-font);
+        }
+        .reveal code {
+            font-family: var(--r-code-font);
+            font-size: 0.9em;
+            background: var(--bg-code);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--spring-medium-green);
+        }
+        .reveal pre code { color: var(--text-primary); }
+
+        /* Tables */
+        .reveal table {
+            font-size: 0.7em;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        .reveal table th {
+            background: var(--spring-dark);
+            color: white;
+            padding: 10px 20px;
+            font-weight: 500;
+            text-align: left;
+        }
+        .reveal table td {
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .reveal table tr:last-child td { border-bottom: none; }
+        .reveal table tr:nth-child(even) td { background: var(--bg-warm); }
+
+        /* Blockquotes */
+        .reveal blockquote {
+            background: var(--spring-light-green);
+            border-left: 4px solid var(--spring-green);
+            border-radius: 0 8px 8px 0;
+            padding: 20px 24px;
+            font-style: normal;
+            font-size: 0.82em;
+            width: 85%;
+            box-shadow: none;
+            color: var(--text-primary);
+        }
+
+        /* Utility classes */
+        .reveal .small { font-size: 0.68em; color: var(--text-secondary); }
+        .reveal .highlight { color: var(--spring-green); font-weight: 600; }
+        .reveal .warning { color: var(--warning-red); font-weight: 600; }
+        .reveal .success { color: var(--spring-green); font-weight: 600; }
+
+        /* Two-column layout */
+        .reveal .two-col { display: flex; gap: 48px; text-align: left; }
         .reveal .two-col > div { flex: 1; }
-        .reveal .section-title { background: #1a1a2e; color: white; }
-        .reveal .section-title h2 { color: white; }
-        .reveal .section-title p { color: #ccc; }
-        .reveal blockquote { background: #f8f9fa; border-left: 4px solid #6c63ff; padding: 20px; font-style: normal; font-size: 0.85em; width: 85%; }
+
+        /* Section title slides */
+        .reveal section.section-slide {
+            text-align: left;
+            padding-left: 80px;
+        }
+        .reveal section[data-background-color="#191e1e"] h2 {
+            color: #ffffff;
+            font-size: 1.2em;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+        .reveal section[data-background-color="#191e1e"] p {
+            color: var(--spring-green);
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+
+        /* Pill / badge for section numbers */
+        .section-num {
+            display: inline-block;
+            background: var(--spring-green);
+            color: white;
+            font-size: 0.55em;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        /* Architecture diagram */
+        .arch-diagram {
+            text-align: left;
+            font-size: 0.48em;
+            background: var(--bg-code);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            line-height: 1.4;
+        }
+        .arch-diagram code { background: transparent; color: var(--text-primary); font-size: 1em; }
+
+        /* Warning callout */
+        .callout-warning {
+            background: var(--warning-bg);
+            border-left: 4px solid var(--warning-red);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            font-size: 0.82em;
+            width: 85%;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        /* Slide number styling */
+        .reveal .slide-number { font-family: var(--r-main-font); font-size: 14px; color: var(--text-secondary); }
+
+        /* Spring logo leaf decoration on title */
+        .spring-leaf {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            background: var(--spring-green);
+            border-radius: 0 50% 0 50%;
+            margin-bottom: 16px;
+        }
+
+        /* Progress bar */
+        .reveal .progress { color: var(--spring-green); height: 3px; }
     </style>
 </head>
 <body>
@@ -42,9 +225,14 @@
 
 <!-- ==================== TITLE ==================== -->
 <section>
+    <div class="spring-leaf"></div>
     <h1>Hands-on Microservices<br>with Spring Boot</h1>
-    <p>Build a realistic microservices system from scratch</p>
-    <p class="small">Spring Boot 4.0 &bull; Spring Cloud 2025.1 &bull; Java 25</p>
+    <p style="color: var(--text-secondary); font-size: 0.7em; margin-top: 0.5em;">Build a realistic microservices system from scratch</p>
+    <p style="margin-top: 1.5em;">
+        <span style="display: inline-block; background: var(--spring-light-green); color: var(--spring-medium-green); padding: 6px 16px; border-radius: 20px; font-size: 0.55em; font-weight: 500; margin: 0 4px;">Spring Boot 4.0</span>
+        <span style="display: inline-block; background: var(--spring-light-green); color: var(--spring-medium-green); padding: 6px 16px; border-radius: 20px; font-size: 0.55em; font-weight: 500; margin: 0 4px;">Spring Cloud 2025.1</span>
+        <span style="display: inline-block; background: var(--spring-light-green); color: var(--spring-medium-green); padding: 6px 16px; border-radius: 20px; font-size: 0.55em; font-weight: 500; margin: 0 4px;">Java 25</span>
+    </p>
 </section>
 
 <section>
@@ -79,9 +267,9 @@
 </section>
 
 <!-- ==================== SECTION 0: SETUP ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 0</h2>
-    <p style="color:#ccc">Setup Verification</p>
+<section data-background-color="#191e1e">
+    <h2>Section 0</h2>
+    <p>Setup Verification</p>
 </section>
 
 <section>
@@ -101,9 +289,9 @@ mvn -pl catalog-service spring-boot:run</code></pre>
 </section>
 
 <!-- ==================== SECTION 1: MENTAL MODEL ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 1</h2>
-    <p style="color:#ccc">Microservices Mental Model</p>
+<section data-background-color="#191e1e">
+    <h2>Section 1</h2>
+    <p>Microservices Mental Model</p>
 </section>
 
 <section>
@@ -124,7 +312,7 @@ mvn -pl catalog-service spring-boot:run</code></pre>
     <h2>Monolith vs. Microservices</h2>
     <div class="two-col">
         <div>
-            <h3 class="success">Monolith</h3>
+            <h3 style="color: var(--spring-green);">Monolith</h3>
             <ul>
                 <li>Simple to develop and deploy</li>
                 <li>Easy local debugging</li>
@@ -133,7 +321,7 @@ mvn -pl catalog-service spring-boot:run</code></pre>
             </ul>
         </div>
         <div>
-            <h3 class="highlight">Microservices</h3>
+            <h3 style="color: var(--info-blue);">Microservices</h3>
             <ul>
                 <li>Independent scaling</li>
                 <li>Team autonomy</li>
@@ -143,7 +331,9 @@ mvn -pl catalog-service spring-boot:run</code></pre>
         </div>
     </div>
     <br>
-    <p><span class="warning">It's a trade-off, not an upgrade.</span></p>
+    <div class="callout-warning">
+        <strong>It's a trade-off, not an upgrade.</strong>
+    </div>
 </section>
 
 <section>
@@ -163,7 +353,7 @@ mvn -pl catalog-service spring-boot:run</code></pre>
 
 <section>
     <h2>Our Domain: Online Bookstore</h2>
-    <pre style="text-align:left; font-size:0.5em; background: #f8f9fa; padding: 20px; border-radius: 8px;"><code style="background: transparent;">
+    <div class="arch-diagram"><pre style="border: none; box-shadow: none; margin: 0;"><code style="background: transparent; padding: 0;">
     ┌──────────────┐      ┌──────────────────┐      ┌──────────────────┐
     │              │      │                  │      │                  │
     │  API Gateway ├─────►│ catalog-service  │      │  Config Server   │
@@ -181,7 +371,7 @@ mvn -pl catalog-service spring-boot:run</code></pre>
            └─────────►│ Discovery Server │
                       │ (Eureka - 8761)  │
                       └──────────────────┘
-    </code></pre>
+    </code></pre></div>
     <p class="small">Each service owns its own H2 database &mdash; <strong>database per service</strong> pattern</p>
 </section>
 
@@ -202,9 +392,9 @@ mvn -pl catalog-service spring-boot:run</code></pre>
 </section>
 
 <!-- ==================== SECTION 2: CORE SERVICES ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 2</h2>
-    <p style="color:#ccc">Building the Core Services</p>
+<section data-background-color="#191e1e">
+    <h2>Section 2</h2>
+    <p>Building the Core Services</p>
 </section>
 
 <section>
@@ -290,13 +480,13 @@ curl -X POST http://localhost:8082/api/orders \
         <li>How do we discover services dynamically?</li>
     </ul>
     <br>
-    <p class="highlight">We need Service Discovery &rarr;</p>
+    <p class="highlight" style="font-size: 1.1em;">We need Service Discovery &#8594;</p>
 </section>
 
 <!-- ==================== SECTION 3: DISCOVERY & GATEWAY ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 3</h2>
-    <p style="color:#ccc">Service Discovery & API Gateway</p>
+<section data-background-color="#191e1e">
+    <h2>Section 3</h2>
+    <p>Service Discovery & API Gateway</p>
 </section>
 
 <section>
@@ -345,8 +535,8 @@ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/</code></pre>
         <li>Cross-cutting concerns: auth, rate limiting, logging</li>
         <li>Using <strong>Spring Cloud Gateway Server MVC</strong> (Tomcat, no reactive)</li>
     </ul>
-    <pre><code class="language-plaintext">Client → Gateway (8080) → Eureka → catalog-service (8081)
-                                  → order-service (8082)</code></pre>
+    <pre><code class="language-plaintext">Client &#8594; Gateway (8080) &#8594; Eureka &#8594; catalog-service (8081)
+                                     &#8594; order-service (8082)</code></pre>
 </section>
 
 <section>
@@ -376,9 +566,9 @@ public RouterFunction&lt;ServerResponse&gt; gatewayRoutes() {
 </section>
 
 <!-- ==================== SECTION 4: CONFIG ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 4</h2>
-    <p style="color:#ccc">Centralized Configuration</p>
+<section data-background-color="#191e1e">
+    <h2>Section 4</h2>
+    <p>Centralized Configuration</p>
 </section>
 
 <section>
@@ -429,13 +619,13 @@ public class GreetingController {
     <pre><code class="language-bash"># Change app.greeting, then:
 curl -X POST http://localhost:8081/actuator/refresh
 curl http://localhost:8081/api/greeting
-# → Returns the new value without restart!</code></pre>
+# &#8594; Returns the new value without restart!</code></pre>
 </section>
 
 <!-- ==================== SECTION 5: RESILIENCE ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 5</h2>
-    <p style="color:#ccc">Resilience Patterns</p>
+<section data-background-color="#191e1e">
+    <h2>Section 5</h2>
+    <p>Resilience Patterns</p>
 </section>
 
 <section>
@@ -454,7 +644,7 @@ curl http://localhost:8081/api/greeting
 
 <section>
     <h2>Circuit Breaker Pattern</h2>
-    <pre style="text-align:center; font-size:0.55em; background: #f8f9fa; padding: 20px; border-radius: 8px;"><code style="background: transparent;">
+    <div class="arch-diagram"><pre style="border: none; box-shadow: none; margin: 0;"><code style="background: transparent; padding: 0; font-size: 1.1em;">
   CLOSED                    OPEN                   HALF-OPEN
   ┌─────┐   failure      ┌─────┐   timeout      ┌─────────┐
   │     │   threshold    │     │   expires      │         │
@@ -464,9 +654,9 @@ curl http://localhost:8081/api/greeting
   Requests               Requests               Test requests
   pass through           fail fast              allowed through
                                                  │
-                              success ◄──────────┘ → back to CLOSED
-                              failure ──────────── → back to OPEN
-    </code></pre>
+                              success ◄──────────┘ &#8594; back to CLOSED
+                              failure ──────────── &#8594; back to OPEN
+    </code></pre></div>
 </section>
 
 <section>
@@ -511,36 +701,31 @@ curl http://localhost:8082/actuator/health | jq .</code></pre>
 </section>
 
 <!-- ==================== SECTION 6: OBSERVABILITY ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 6</h2>
-    <p style="color:#ccc">Observability</p>
+<section data-background-color="#191e1e">
+    <h2>Section 6</h2>
+    <p>Observability</p>
 </section>
 
 <section>
     <h2>The Three Pillars</h2>
     <div class="two-col">
         <div>
-            <h3>Logs</h3>
+            <h3 style="color: var(--spring-green);">Logs</h3>
             <p>What happened?</p>
             <p class="small">Structured logging (ECS format)</p>
-        </div>
-        <div>
-            <h3>Metrics</h3>
-            <p>How is it performing?</p>
-            <p class="small">Micrometer + Actuator</p>
-        </div>
-    </div>
-    <br>
-    <div class="two-col">
-        <div>
-            <h3>Health Checks</h3>
+            <br>
+            <h3 style="color: var(--spring-green);">Health Checks</h3>
             <p>Is it alive?</p>
             <p class="small">Actuator /health endpoint</p>
         </div>
         <div>
-            <h3 style="color: #999">Traces</h3>
-            <p style="color: #999">Where did time go?</p>
-            <p class="small" style="color: #999">(Not covered today)</p>
+            <h3 style="color: var(--spring-green);">Metrics</h3>
+            <p>How is it performing?</p>
+            <p class="small">Micrometer + Actuator</p>
+            <br>
+            <h3 style="color: #a0aec0;">Traces</h3>
+            <p style="color: #a0aec0;">Where did time go?</p>
+            <p class="small" style="color: #a0aec0;">(Not covered today)</p>
         </div>
     </div>
 </section>
@@ -565,9 +750,9 @@ curl http://localhost:8082/actuator/metrics/orders.placed</code></pre>
 </section>
 
 <!-- ==================== SECTION 7: DOCKER ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 7</h2>
-    <p style="color:#ccc">Docker Compose & Full System</p>
+<section data-background-color="#191e1e">
+    <h2>Section 7</h2>
+    <p>Docker Compose & Full System</p>
 </section>
 
 <section>
@@ -602,9 +787,9 @@ docker compose up --build</code></pre>
 </section>
 
 <!-- ==================== SECTION 8: DISCUSSION ==================== -->
-<section data-background-color="#1a1a2e">
-    <h2 style="color:white">Section 8</h2>
-    <p style="color:#ccc">When (Not) to Use Microservices</p>
+<section data-background-color="#191e1e">
+    <h2>Section 8</h2>
+    <p>When (Not) to Use Microservices</p>
 </section>
 
 <section>
@@ -643,9 +828,9 @@ docker compose up --build</code></pre>
         <li>All the pain of microservices, none of the benefits</li>
     </ul>
     <br>
-    <blockquote>
+    <div class="callout-warning">
         If you can't deploy a service independently,<br>it's not a microservice &mdash; it's a distributed monolith.
-    </blockquote>
+    </div>
 </section>
 
 <section>
@@ -677,10 +862,11 @@ docker compose up --build</code></pre>
 </section>
 
 <section>
+    <div class="spring-leaf" style="width: 36px; height: 36px;"></div>
     <h1>Q&A</h1>
-    <p>Thank you!</p>
+    <p style="color: var(--text-secondary);">Thank you!</p>
     <br>
-    <p class="small">Workshop guide: <code>docs/workshop-guide.md</code></p>
+    <p class="small">Workshop guide: <code>workshop-guide.md</code></p>
 </section>
 
 </div>
@@ -691,8 +877,12 @@ docker compose up --build</code></pre>
 <script>
     Reveal.initialize({
         hash: true,
-        slideNumber: true,
-        transition: 'slide',
+        slideNumber: 'c/t',
+        transition: 'fade',
+        transitionSpeed: 'fast',
+        width: 1280,
+        height: 720,
+        margin: 0.08,
         plugins: [RevealHighlight]
     });
 </script>

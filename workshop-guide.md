@@ -1,5 +1,7 @@
 # Hands-on Microservices with Spring Boot — Workshop Guide
 
+**Author:** [Simon Martinelli](https://martinelli.ch)
+
 ## Prerequisites
 
 Before the workshop, make sure you have:

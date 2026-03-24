@@ -1,5 +1,6 @@
 # Hands-on Microservices with Spring Boot Workshop
 
+**Author:** [Simon Martinelli](https://martinelli.ch)
 **Duration:** 3 hours
 **Versions:** Spring Boot 4.0.x and Spring Cloud 2025.1.x
 

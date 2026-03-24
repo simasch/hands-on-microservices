@@ -132,18 +132,16 @@ Open `order-service/src/main/java/com/bookshop/order/client/BookClient.java`
 Complete **TODO 3** — Call catalog-service to get a book:
 
 ```java
-public Optional<BookResponse> getBookByIsbn(String isbn) {
-    try {
-        BookResponse book = restClient.get()
-                .uri("/api/books/{isbn}", isbn)
-                .retrieve()
-                .body(BookResponse.class);
-        return Optional.ofNullable(book);
-    } catch (Exception e) {
-        return Optional.empty();
-    }
+public BookResponse getBookByIsbn(String isbn) {
+    return restClient.get()
+            .uri("/api/books/{isbn}", isbn)
+            .retrieve()
+            .body(BookResponse.class);
 }
 ```
+
+> **Note:** Don't catch exceptions here — the method stays clean. In Section 5, `@Retryable` will handle
+> transient failures, and in `OrderService` we'll handle the case when catalog-service is truly unavailable.
 
 ### Exercise 2C: Order Business Logic (10 min)
 
@@ -155,8 +153,7 @@ Complete **TODO 4** — Implement `placeOrder`:
 public Order placeOrder(CreateOrderRequest request) {
     List<OrderItem> orderItems = new ArrayList<>();
     for (var item : request.items()) {
-        BookResponse book = bookClient.getBookByIsbn(item.isbn())
-                .orElseThrow(() -> new IllegalArgumentException("Book not found: " + item.isbn()));
+        BookResponse book = bookClient.getBookByIsbn(item.isbn());
         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
     }
     Order order = new Order(orderItems);
@@ -239,14 +236,16 @@ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
 
 Restart both services and check the Eureka dashboard — both should appear.
 
-### Exercise 3B: Use Service Discovery in BookClient (5 min)
+### Exercise 3B: Use Service Discovery in BookClient (10 min)
 
 Complete **TODO 8** in `BookClient.java`:
 
-1. Change the base URL:
+1. Change the constructor to accept a pre-built `RestClient` instead of `RestClient.Builder`:
 
 ```java
-.baseUrl("http://catalog-service")
+public BookClient(RestClient catalogRestClient) {
+    this.restClient = catalogRestClient;
+}
 ```
 
 2. Create a new configuration class `order-service/src/main/java/com/bookshop/order/RestClientConfig.java`:
@@ -254,21 +253,69 @@ Complete **TODO 8** in `BookClient.java`:
 ```java
 package com.bookshop.order;
 
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
 
     @Bean
-    @LoadBalanced
-    public RestClient.Builder restClientBuilder() {
-        return RestClient.builder();
+    public RestClient catalogRestClient(LoadBalancerClient loadBalancerClient) {
+        return RestClient.builder()
+                .requestInterceptor(new ServiceDiscoveryInterceptor(loadBalancerClient))
+                .baseUrl("http://catalog-service")
+                .build();
+    }
+
+    static class ServiceDiscoveryInterceptor implements ClientHttpRequestInterceptor {
+        private final LoadBalancerClient loadBalancerClient;
+
+        ServiceDiscoveryInterceptor(LoadBalancerClient loadBalancerClient) {
+            this.loadBalancerClient = loadBalancerClient;
+        }
+
+        @Override
+        public ClientHttpResponse intercept(HttpRequest request, byte[] body,
+                                            ClientHttpRequestExecution execution) throws IOException {
+            URI originalUri = request.getURI();
+            String serviceName = originalUri.getHost();
+            ServiceInstance instance = loadBalancerClient.choose(serviceName);
+            if (instance != null) {
+                URI newUri = URI.create(
+                        originalUri.getScheme() + "://" +
+                        instance.getHost() + ":" + instance.getPort() +
+                        originalUri.getPath() +
+                        (originalUri.getQuery() != null ? "?" + originalUri.getQuery() : "")
+                );
+                HttpRequest newRequest = new HttpRequest() {
+                    @Override public HttpMethod getMethod() { return request.getMethod(); }
+                    @Override public URI getURI() { return newUri; }
+                    @Override public HttpHeaders getHeaders() { return request.getHeaders(); }
+                    @Override public Map<String, Object> getAttributes() { return request.getAttributes(); }
+                };
+                return execution.execute(newRequest, body);
+            }
+            return execution.execute(request, body);
+        }
     }
 }
 ```
+
+> **Why not `@LoadBalanced`?** A global `@LoadBalanced RestClient.Builder` bean interferes with Eureka's internal HTTP
+> communication, preventing service registration. Using `LoadBalancerClient` directly scopes load balancing to only
+> our catalog service calls.
 
 ### Exercise 3C: API Gateway Routes (15 min)
 
@@ -282,18 +329,18 @@ Complete **TODO 9**:
 public RouterFunction<ServerResponse> gatewayRoutes() {
     return route("catalog_route")
             .GET("/api/books/**", http())
-            .before(uri("lb://catalog-service"))
+            .filter(lb("catalog-service"))
             .build()
             .and(
                     route("order_post_route")
                             .POST("/api/orders", http())
-                            .before(uri("lb://order-service"))
+                            .filter(lb("order-service"))
                             .build()
             )
             .and(
                     route("order_get_route")
                             .GET("/api/orders", http())
-                            .before(uri("lb://order-service"))
+                            .filter(lb("order-service"))
                             .build()
             );
 }
@@ -313,7 +360,7 @@ curl -X POST http://localhost:8080/api/orders \
 curl http://localhost:8080/api/orders
 ```
 
-> **Discussion point:** The `lb://` prefix tells the gateway to use client-side load balancing via Eureka. If you had 3
+> **Discussion point:** The `lb()` filter uses client-side load balancing via Eureka. If you had 3
 > instances of catalog-service, traffic would be distributed.
 
 ---
@@ -608,13 +655,13 @@ Discussion topics:
 | 5    | `OrderController.java`              | 2       | POST order endpoint                  |
 | 6    | `OrderController.java`              | 2       | GET all orders endpoint              |
 | 7    | `application.properties` (both)     | 3       | Eureka client config                 |
-| 8    | `BookClient.java`                   | 3       | Service discovery URL + LoadBalanced |
+| 8    | `BookClient.java` + `RestClientConfig.java` | 3 | Service discovery + LoadBalancerClient |
 | 9    | `GatewayRouteConfig.java`           | 3       | Gateway routes                       |
 | 10   | `catalog-service.properties` (config-repo) | 4  | Move config to Config Server         |
 | 11   | `application.properties` (both)     | 4       | Config import (pre-configured)       |
 | 12   | `GreetingController.java`           | 4       | @RefreshScope + @Value               |
 | 13   | `BookClient.java`                   | 5       | @Retryable                           |
-| 14   | `BookClient.java`                   | 5       | Fallback method                      |
+| 14   | `OrderService.java`                 | 5       | Graceful failure handling             |
 | 16   | `application.properties` (order)    | 6       | Actuator endpoints                   |
 | 17   | `application.properties` (order)    | 6       | Structured logging                   |
 | 18   | `OrderService.java`                 | 6       | Log statement                        |

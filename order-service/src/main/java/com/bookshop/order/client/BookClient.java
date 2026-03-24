@@ -1,6 +1,5 @@
 package com.bookshop.order.client;
 
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,14 +20,12 @@ public class BookClient {
                 // ============================================================
                 .baseUrl("http://localhost:8081")
                 // ============================================================
-                // TODO 8: Replace the hardcoded URL above with the service name:
-                //   .baseUrl("http://catalog-service")
-                //   Also, you need to add a @LoadBalanced bean for RestClient.Builder.
-                //   Create a @Configuration class with:
-                //   @Bean @LoadBalanced
-                //   public RestClient.Builder restClientBuilder() {
-                //       return RestClient.builder();
-                //   }
+                // TODO 8: Replace this constructor to accept a pre-built RestClient:
+                //   Change constructor to: public BookClient(RestClient catalogRestClient)
+                //   And set: this.restClient = catalogRestClient;
+                //   Then create a @Configuration class RestClientConfig.java with a
+                //   @Bean that builds a load-balanced RestClient using LoadBalancerClient.
+                //   See the workshop guide for the full RestClientConfig code.
                 // ============================================================
                 .build();
     }

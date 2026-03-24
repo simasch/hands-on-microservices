@@ -20,12 +20,14 @@ public class BookController {
     // Section 2 - Exercise: Catalog REST API
     // ============================================================
 
-    // TODO 1: Return all books
-    //   Create a GET method that returns List<Book>
-    //   Hint: Use repository.findAll()
+    @GetMapping
+    public List<Book> getAllBooks() {
+        return repository.findAll();
+    }
 
-    // TODO 2: Return a single book by ISBN
-    //   Create a GET method mapped to "/{isbn}" that returns a Book
-    //   Hint: Use repository.findByIsbn(isbn)
-    //   Throw a BookNotFoundException if the book is not found
+    @GetMapping("/{isbn}")
+    public Book getBookByIsbn(@PathVariable String isbn) {
+        return repository.findByIsbn(isbn)
+                .orElseThrow(() -> new BookNotFoundException(isbn));
+    }
 }

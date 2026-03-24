@@ -17,11 +17,13 @@ public class OrderController {
     // Section 2 - Exercise: Order REST API
     // ============================================================
 
-    // TODO 5: Create a POST endpoint to place an order
-    //   Accepts a @RequestBody CreateOrderRequest
-    //   Delegates to orderService.placeOrder(request)
-    //   Returns the created Order
+    @PostMapping
+    public Order placeOrder(@RequestBody CreateOrderRequest request) {
+        return orderService.placeOrder(request);
+    }
 
-    // TODO 6: Create a GET endpoint to list all orders
-    //   Returns List<Order> from orderService.getAllOrders()
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderService.getAllOrders();
+    }
 }

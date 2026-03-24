@@ -12,49 +12,23 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 @Configuration
 public class GatewayRouteConfig {
 
-    // ============================================================
-    // Section 3 - Exercise: API Gateway Routes
-    // ============================================================
-
-    // TODO 9: Define routes for the API Gateway
-    //   Create a @Bean method that returns RouterFunction<ServerResponse>
-    //
-    //   Route 1 - Catalog Service:
-    //     route("catalog_route")
-    //         .GET("/api/books/**", http())
-    //         .filter(lb("catalog-service"))
-    //         .build()
-    //
-    //   Route 2 - Order Service (POST):
-    //     route("order_post_route")
-    //         .POST("/api/orders", http())
-    //         .filter(lb("order-service"))
-    //         .build()
-    //
-    //   Route 3 - Order Service (GET):
-    //     route("order_get_route")
-    //         .GET("/api/orders", http())
-    //         .filter(lb("order-service"))
-    //         .build()
-    //
-    //   Combine them using .and():
-    //     return route("catalog_route")
-    //         .GET("/api/books/**", http())
-    //         .filter(lb("catalog-service"))
-    //     .build()
-    //     .and(
-    //         route("order_post_route")
-    //             .POST("/api/orders", http())
-    //             .filter(lb("order-service"))
-    //         .build()
-    //     )
-    //     .and(
-    //         route("order_get_route")
-    //             .GET("/api/orders", http())
-    //             .filter(lb("order-service"))
-    //         .build()
-    //     );
-    //
-    //   Note: lb() uses client-side load balancing via Eureka to resolve service names
-    // ============================================================
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRoutes() {
+        return route("catalog_route")
+                .GET("/api/books/**", http())
+                .filter(lb("catalog-service"))
+                .build()
+                .and(
+                        route("order_post_route")
+                                .POST("/api/orders", http())
+                                .filter(lb("order-service"))
+                                .build()
+                )
+                .and(
+                        route("order_get_route")
+                                .GET("/api/orders", http())
+                                .filter(lb("order-service"))
+                                .build()
+                );
+    }
 }

@@ -29,45 +29,23 @@ public class OrderService {
     // Section 2 - Exercise: Place an Order
     // ============================================================
 
-    // TODO 4: Implement placeOrder(CreateOrderRequest request)
-    //   - For each item in request.items():
-    //     1. Call bookClient.getBookByIsbn(item.isbn())
-    //     2. If the book is not found, throw an IllegalArgumentException("Book not found: " + isbn)
-    //     3. Create an OrderItem with isbn, title, quantity, and price from the book
-    //   - Create and save the Order with all OrderItems
-    //   - Return the saved Order
-    //
-    //   Hint:
-    //     List<OrderItem> orderItems = new ArrayList<>();
-    //     for (var item : request.items()) {
-    //         BookResponse book = bookClient.getBookByIsbn(item.isbn());
-    //         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
-    //     }
-    //     Order order = new Order(orderItems);
-    //     return orderRepository.save(order);
-    //
-    // ============================================================
-    // Section 5 - Exercise: Handle failures gracefully
-    // ============================================================
-    //   TODO 14: Wrap the bookClient call in a try/catch so the order
-    //   fails gracefully when catalog-service is unavailable (after retries):
-    //
-    //     try {
-    //         BookResponse book = bookClient.getBookByIsbn(item.isbn());
-    //         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
-    //     } catch (Exception e) {
-    //         log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
-    //         throw new IllegalStateException("catalog-service unavailable, please try again later");
-    //     }
-    //
-    // ============================================================
-    // Section 6 - Exercise: Observability
-    // ============================================================
-    //   TODO 18: Add a log statement before processing:
-    //     log.info("Placing order for {} items", request.items().size());
-    //
-    //   TODO 19: After saving, increment a counter:
-    //     meterRegistry.counter("orders.placed", "status", "success").increment();
+    public Order placeOrder(CreateOrderRequest request) {
+        log.info("Placing order for {} items", request.items().size());
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (var item : request.items()) {
+            try {
+                BookResponse book = bookClient.getBookByIsbn(item.isbn());
+                orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+            } catch (Exception e) {
+                log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
+                throw new IllegalStateException("catalog-service unavailable, please try again later");
+            }
+        }
+        Order order = new Order(orderItems);
+        Order saved = orderRepository.save(order);
+        meterRegistry.counter("orders.placed", "status", "success").increment();
+        return saved;
+    }
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();

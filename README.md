@@ -89,7 +89,7 @@ By the end of the workshop, you'll be able to:
 
 ## Prerequisites
 
-- **Java 21** (`java -version`)
+- **Java 25** (`java -version`)
 - **Maven 3.9+** (`mvn -version`)
 - **Docker Desktop** (`docker info`)
 - **Git** (`git --version`)

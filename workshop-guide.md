@@ -4,7 +4,7 @@
 
 Before the workshop, make sure you have:
 
-- **Java 21** installed (`java -version`)
+- **Java 25** installed (`java -version`)
 - **Maven 3.9+** installed (`mvn -version`)
 - **Docker Desktop** running (`docker info`)
 - **Git** installed (`git --version`)

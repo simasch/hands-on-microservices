@@ -699,28 +699,28 @@ public class ResilientConfig {
 </section>
 
 <section>
-    <h2>Exercise: @Retryable + Fallback</h2>
+    <h2>Exercise: @Retryable + Graceful Failure</h2>
+    <p><strong>BookClient</strong> &mdash; pure HTTP client, retries are transparent:</p>
     <pre><code class="language-java">import org.springframework.resilience.annotation.Retryable;
 
-// TODO 13: Add @Retryable
+// TODO 13: Add @Retryable — no try/catch needed here
 @Retryable(maxRetries = 3, delay = 500)
-public Optional&lt;BookResponse&gt; getBookByIsbn(String isbn) {
-    try {
-        BookResponse book = restClient.get()
-                .uri("/api/books/{isbn}", isbn)
-                .retrieve().body(BookResponse.class);
-        return Optional.ofNullable(book);
-    } catch (Exception e) {
-        return getBookByIsbnFallback(isbn);
-    }
-}
-
-// TODO 14: Fallback when retries exhausted
-public Optional&lt;BookResponse&gt; getBookByIsbnFallback(String isbn) {
-    log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
-    return Optional.empty();
+public BookResponse getBookByIsbn(String isbn) {
+    return restClient.get()
+            .uri("/api/books/{isbn}", isbn)
+            .retrieve()
+            .body(BookResponse.class);
 }</code></pre>
-    <p class="small">3 retries &times; 500ms delay = fails gracefully after ~1.5s</p>
+    <p><strong>OrderService</strong> &mdash; decides what to do when retries fail:</p>
+    <pre><code class="language-java">// TODO 14: Handle failure gracefully in placeOrder
+try {
+    BookResponse book = bookClient.getBookByIsbn(item.isbn());
+    orderItems.add(new OrderItem(book.isbn(), book.title(), ...));
+} catch (Exception e) {
+    log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
+    throw new IllegalStateException("catalog-service unavailable");
+}</code></pre>
+    <p class="small">Clean separation: client retries transparently, service decides the business response</p>
 </section>
 
 <section>

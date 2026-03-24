@@ -411,46 +411,46 @@ The `@EnableResilientMethods` configuration is already provided in `ResilientCon
 
 Open `order-service/src/main/java/com/bookshop/order/client/BookClient.java`
 
+Notice that `ResilientConfig.java` already enables `@EnableResilientMethods` — this activates Spring Framework's
+built-in retry support. No external libraries needed.
+
 Complete **TODO 13** — Add `@Retryable` to `getBookByIsbn`:
 
 ```java
 import org.springframework.resilience.annotation.Retryable;
 
 @Retryable(maxRetries = 3, delay = 500)
-public Optional<BookResponse> getBookByIsbn(String isbn) {
-    // ... existing implementation
+public BookResponse getBookByIsbn(String isbn) {
+    return restClient.get()
+            .uri("/api/books/{isbn}", isbn)
+            .retrieve()
+            .body(BookResponse.class);
 }
 ```
 
-This will retry failed calls up to 3 times with a 500ms delay between attempts.
+The method stays clean — no try/catch. `@Retryable` handles retries transparently. If all retries
+fail, the exception propagates to the caller.
 
-### Exercise 5B: Add Fallback (10 min)
+### Exercise 5B: Handle Failure in OrderService (10 min)
 
-Complete **TODO 14** — Add a fallback method for when all retries are exhausted:
+Open `order-service/src/main/java/com/bookshop/order/order/OrderService.java`
+
+Complete **TODO 14** — Wrap the `bookClient` call so the order fails gracefully when catalog-service
+is unavailable (after retries are exhausted):
 
 ```java
-public Optional<BookResponse> getBookByIsbnFallback(String isbn) {
-    log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
-    return Optional.empty();
+try {
+    BookResponse book = bookClient.getBookByIsbn(item.isbn());
+    orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+} catch (Exception e) {
+    log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
+    throw new IllegalStateException("catalog-service unavailable, please try again later");
 }
 ```
 
-Then update the `getBookByIsbn` method to call the fallback in the catch block:
-
-```java
-@Retryable(maxRetries = 3, delay = 500)
-public Optional<BookResponse> getBookByIsbn(String isbn) {
-    try {
-        BookResponse book = restClient.get()
-                .uri("/api/books/{isbn}", isbn)
-                .retrieve()
-                .body(BookResponse.class);
-        return Optional.ofNullable(book);
-    } catch (Exception e) {
-        return getBookByIsbnFallback(isbn);
-    }
-}
-```
+This is a cleaner separation of concerns:
+- **BookClient** is a pure HTTP client — `@Retryable` handles transient failures
+- **OrderService** decides what to do when the service is truly unavailable
 
 **Verify:**
 
@@ -461,17 +461,17 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 1}]}'
 
 # Stop catalog-service (Ctrl+C)
-# Try placing another order — should fail gracefully (fallback returns empty)
+# Try placing another order — should fail with a clear error after retries
 curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
   -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 1}]}'
 
-# Check the logs — you should see retry attempts and fallback warnings
+# Check the logs — you should see retry attempts and the warning message
 ```
 
 > **Discussion point:** `@Retryable` is built into Spring Framework 7 — no external dependencies needed.
-> For more advanced patterns (circuit breaker state machine, bulkheads, rate limiters),
-> you can add Resilience4j as a library on top.
+> The retry is transparent to the caller. For more advanced patterns (circuit breaker state machine,
+> bulkheads, rate limiters), you can add Resilience4j on top.
 
 ---
 

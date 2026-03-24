@@ -40,12 +40,25 @@ public class OrderService {
     //   Hint:
     //     List<OrderItem> orderItems = new ArrayList<>();
     //     for (var item : request.items()) {
-    //         BookResponse book = bookClient.getBookByIsbn(item.isbn())
-    //             .orElseThrow(() -> new IllegalArgumentException("Book not found: " + item.isbn()));
+    //         BookResponse book = bookClient.getBookByIsbn(item.isbn());
     //         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
     //     }
     //     Order order = new Order(orderItems);
     //     return orderRepository.save(order);
+    //
+    // ============================================================
+    // Section 5 - Exercise: Handle failures gracefully
+    // ============================================================
+    //   TODO 14: Wrap the bookClient call in a try/catch so the order
+    //   fails gracefully when catalog-service is unavailable (after retries):
+    //
+    //     try {
+    //         BookResponse book = bookClient.getBookByIsbn(item.isbn());
+    //         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+    //     } catch (Exception e) {
+    //         log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
+    //         throw new IllegalStateException("catalog-service unavailable, please try again later");
+    //     }
     //
     // ============================================================
     // Section 6 - Exercise: Observability

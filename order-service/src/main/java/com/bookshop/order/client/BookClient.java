@@ -38,12 +38,12 @@ public class BookClient {
     // ============================================================
 
     // TODO 3: Create a method to get a book by ISBN from catalog-service
-    //   Method signature: public Optional<BookResponse> getBookByIsbn(String isbn)
+    //   Method signature: public BookResponse getBookByIsbn(String isbn)
     //   Use restClient.get()
     //       .uri("/api/books/{isbn}", isbn)
     //       .retrieve()
     //       .body(BookResponse.class)
-    //   Wrap in Optional. Catch exceptions and return Optional.empty()
+    //   Just return the result — don't catch exceptions here.
     //
     // ============================================================
     // Section 5 - Exercise: Resilience Patterns
@@ -55,14 +55,5 @@ public class BookClient {
     //   This uses Spring Framework's built-in retry support.
     //   When catalog-service is down, the call will be retried
     //   up to 3 times with a 500ms delay between attempts.
-    //
-    // TODO 14: Implement a fallback method for when all retries fail.
-    //   Add a method that catches the exception and returns a safe default:
-    //
-    //   public Optional<BookResponse> getBookByIsbnFallback(String isbn) {
-    //       log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
-    //       return Optional.empty();
-    //   }
-    //
-    //   Then update the original method to call the fallback in the catch block.
+    //   If all retries fail, the exception propagates to the caller.
 }

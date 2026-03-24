@@ -48,15 +48,21 @@ public class BookClient {
     // ============================================================
     // Section 5 - Exercise: Resilience Patterns
     // ============================================================
-    // TODO 13: Add @CircuitBreaker annotation to the method above
-    //   @CircuitBreaker(name = "catalogService", fallbackMethod = "getBookFallback")
+    // TODO 13: Add @Retryable annotation to the method above
+    //   @Retryable(maxRetries = 3, delay = 500)
+    //   (import org.springframework.resilience.annotation.Retryable)
     //
-    // TODO 15: Add @Retry annotation
-    //   @Retry(name = "catalogService")
+    //   This uses Spring Framework's built-in retry support.
+    //   When catalog-service is down, the call will be retried
+    //   up to 3 times with a 500ms delay between attempts.
     //
-    // TODO 14: Implement the fallback method:
-    //   private Optional<BookResponse> getBookFallback(String isbn, Throwable t) {
-    //       log.warn("Fallback: catalog-service unavailable for ISBN {}: {}", isbn, t.getMessage());
+    // TODO 14: Implement a fallback method for when all retries fail.
+    //   Add a method that catches the exception and returns a safe default:
+    //
+    //   public Optional<BookResponse> getBookByIsbnFallback(String isbn) {
+    //       log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
     //       return Optional.empty();
     //   }
+    //
+    //   Then update the original method to call the fallback in the catch block.
 }

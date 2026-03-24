@@ -132,7 +132,7 @@ Then follow the **[Workshop Guide](workshop-guide.md)** for step-by-step exercis
 - Spring Cloud Netflix Eureka (service discovery)
 - Spring Cloud Gateway Server MVC (API gateway)
 - Spring Cloud Config (centralized configuration)
-- Resilience4j (circuit breaker, retry)
+- Spring Framework Resilience — built-in `@Retryable` (retry)
 - Spring Boot Actuator & Micrometer (observability)
 - H2 in-memory database (per service)
 - Docker Compose (local deployment)

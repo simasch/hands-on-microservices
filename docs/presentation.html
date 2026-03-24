@@ -217,6 +217,28 @@
 
         /* Progress bar */
         .reveal .progress { color: var(--spring-green); height: 3px; }
+
+        /* Doc links on section slides */
+        .doc-links {
+            margin-top: 1.5em;
+            font-size: 0.45em;
+            color: rgba(255,255,255,0.5);
+        }
+        .doc-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        .doc-links a:hover { color: var(--spring-green); border-color: var(--spring-green); }
+
+        /* Inline doc links on content slides */
+        .docs {
+            font-size: 0.6em;
+            color: var(--text-secondary);
+            margin-top: 0.3em;
+        }
+        .docs a { color: var(--spring-medium-green); text-decoration: none; }
+        .docs a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -395,6 +417,11 @@ mvn -pl catalog-service spring-boot:run</code></pre>
 <section data-background-color="#191e1e">
     <h2>Section 2</h2>
     <p>Building the Core Services</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-boot/reference/web/servlet.html">Spring Web MVC</a> &bull;
+        <a href="https://docs.spring.io/spring-data/jpa/reference/">Spring Data JPA</a> &bull;
+        <a href="https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-restclient">RestClient</a>
+    </div>
 </section>
 
 <section>
@@ -487,6 +514,11 @@ curl -X POST http://localhost:8082/api/orders \
 <section data-background-color="#191e1e">
     <h2>Section 3</h2>
     <p>Service Discovery & API Gateway</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-cloud-netflix/reference/spring-cloud-netflix.html">Spring Cloud Eureka</a> &bull;
+        <a href="https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webmvc.html">Gateway Server MVC</a> &bull;
+        <a href="https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/loadbalancer.html">LoadBalancer</a>
+    </div>
 </section>
 
 <section>
@@ -569,6 +601,11 @@ public RouterFunction&lt;ServerResponse&gt; gatewayRoutes() {
 <section data-background-color="#191e1e">
     <h2>Section 4</h2>
     <p>Centralized Configuration</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-cloud-config/reference/server.html">Config Server</a> &bull;
+        <a href="https://docs.spring.io/spring-cloud-config/reference/client.html">Config Client</a> &bull;
+        <a href="https://docs.spring.io/spring-boot/reference/features/external-config.html">Externalized Config</a>
+    </div>
 </section>
 
 <section>
@@ -626,6 +663,10 @@ curl http://localhost:8081/api/greeting
 <section data-background-color="#191e1e">
     <h2>Section 5</h2>
     <p>Resilience Patterns</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-framework/reference/core/resilience.html">Spring Framework Resilience</a> &bull;
+        <a href="https://docs.spring.io/spring-framework/reference/core/resilience.html#retryable">@Retryable</a>
+    </div>
 </section>
 
 <section>
@@ -643,45 +684,43 @@ curl http://localhost:8081/api/greeting
 </section>
 
 <section>
-    <h2>Circuit Breaker Pattern</h2>
-    <div class="arch-diagram"><pre style="border: none; box-shadow: none; margin: 0;"><code style="background: transparent; padding: 0; font-size: 1.1em;">
-  CLOSED                    OPEN                   HALF-OPEN
-  ┌─────┐   failure      ┌─────┐   timeout      ┌─────────┐
-  │     │   threshold    │     │   expires      │         │
-  │  ●  │ ────────────►  │  ●  │ ────────────►  │    ●    │
-  │     │                │     │                │         │
-  └─────┘                └─────┘                └─────────┘
-  Requests               Requests               Test requests
-  pass through           fail fast              allowed through
-                                                 │
-                              success ◄──────────┘ &#8594; back to CLOSED
-                              failure ──────────── &#8594; back to OPEN
-    </code></pre></div>
+    <h2>Built-in Retry in Spring Framework 7</h2>
+    <ul>
+        <li>Spring Framework 7 includes <span class="highlight">native retry support</span></li>
+        <li>No external libraries needed &mdash; just <code>@Retryable</code></li>
+        <li>Enable with <code>@EnableResilientMethods</code></li>
+        <li>Supports exponential backoff, jitter, max delay</li>
+    </ul>
+    <br>
+    <pre><code class="language-java">@Configuration
+@EnableResilientMethods
+public class ResilientConfig {
+}  // already provided in the project</code></pre>
 </section>
 
 <section>
-    <h2>Exercise: Circuit Breaker + Retry</h2>
-    <pre><code class="language-java">// TODO 13 + 15
-@CircuitBreaker(name = "catalogService",
-                fallbackMethod = "getBookFallback")
-@Retry(name = "catalogService")
+    <h2>Exercise: @Retryable + Fallback</h2>
+    <pre><code class="language-java">import org.springframework.resilience.annotation.Retryable;
+
+// TODO 13: Add @Retryable
+@Retryable(maxRetries = 3, delay = 500)
 public Optional&lt;BookResponse&gt; getBookByIsbn(String isbn) {
-    // ... existing RestClient call
+    try {
+        BookResponse book = restClient.get()
+                .uri("/api/books/{isbn}", isbn)
+                .retrieve().body(BookResponse.class);
+        return Optional.ofNullable(book);
+    } catch (Exception e) {
+        return getBookByIsbnFallback(isbn);
+    }
 }
 
-// TODO 14: Fallback method
-private Optional&lt;BookResponse&gt; getBookFallback(
-        String isbn, Throwable t) {
-    log.warn("Fallback: catalog-service unavailable "
-           + "for ISBN {}: {}", isbn, t.getMessage());
+// TODO 14: Fallback when retries exhausted
+public Optional&lt;BookResponse&gt; getBookByIsbnFallback(String isbn) {
+    log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
     return Optional.empty();
 }</code></pre>
-    <br>
-    <pre><code class="language-properties"># Pre-configured in application.properties
-resilience4j.circuitbreaker.instances.catalogService.sliding-window-size=5
-resilience4j.circuitbreaker.instances.catalogService.failure-rate-threshold=50
-resilience4j.circuitbreaker.instances.catalogService.wait-duration-in-open-state=10s
-resilience4j.retry.instances.catalogService.max-attempts=3</code></pre>
+    <p class="small">3 retries &times; 500ms delay = fails gracefully after ~1.5s</p>
 </section>
 
 <section>
@@ -704,6 +743,11 @@ curl http://localhost:8082/actuator/health | jq .</code></pre>
 <section data-background-color="#191e1e">
     <h2>Section 6</h2>
     <p>Observability</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-boot/reference/actuator/index.html">Spring Boot Actuator</a> &bull;
+        <a href="https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.structured">Structured Logging</a> &bull;
+        <a href="https://docs.micrometer.io/micrometer/reference/">Micrometer</a>
+    </div>
 </section>
 
 <section>
@@ -733,7 +777,7 @@ curl http://localhost:8082/actuator/health | jq .</code></pre>
 <section>
     <h2>Exercise: Observability</h2>
     <pre><code class="language-properties"># TODO 16: Expose actuator endpoints
-management.endpoints.web.exposure.include=health,info,metrics,circuitbreakers,refresh
+management.endpoints.web.exposure.include=health,info,metrics,refresh
 management.endpoint.health.show-details=always
 
 # TODO 17: Structured logging
@@ -753,6 +797,10 @@ curl http://localhost:8082/actuator/metrics/orders.placed</code></pre>
 <section data-background-color="#191e1e">
     <h2>Section 7</h2>
     <p>Docker Compose & Full System</p>
+    <div class="doc-links">
+        <a href="https://docs.spring.io/spring-boot/reference/features/docker-compose.html">Spring Boot Docker Compose</a> &bull;
+        <a href="https://docs.docker.com/compose/compose-file/">Docker Compose Reference</a>
+    </div>
 </section>
 
 <section>
@@ -855,10 +903,37 @@ docker compose up --build</code></pre>
         <li>Service discovery with Eureka</li>
         <li>API Gateway with Spring Cloud Gateway MVC</li>
         <li>Centralized configuration with dynamic refresh</li>
-        <li>Circuit breaker + retry for resilience</li>
+        <li>Built-in retry with <code>@Retryable</code> for resilience</li>
         <li>Health checks, structured logging, and custom metrics</li>
         <li>Docker Compose for the full system</li>
     </ul>
+</section>
+
+<section>
+    <h2>Further Reading</h2>
+    <div class="two-col" style="font-size: 0.75em;">
+        <div>
+            <h3 style="color: var(--spring-green);">Documentation</h3>
+            <ul style="font-size: 0.85em; line-height: 2;">
+                <li><a href="https://docs.spring.io/spring-boot/reference/">Spring Boot Reference</a></li>
+                <li><a href="https://docs.spring.io/spring-cloud/reference/">Spring Cloud Reference</a></li>
+                <li><a href="https://docs.spring.io/spring-cloud-netflix/reference/">Spring Cloud Netflix</a></li>
+                <li><a href="https://docs.spring.io/spring-cloud-gateway/reference/">Spring Cloud Gateway</a></li>
+                <li><a href="https://docs.spring.io/spring-cloud-config/reference/">Spring Cloud Config</a></li>
+                <li><a href="https://docs.spring.io/spring-framework/reference/core/resilience.html">Spring Resilience</a></li>
+                <li><a href="https://docs.micrometer.io/micrometer/reference/">Micrometer</a></li>
+            </ul>
+        </div>
+        <div>
+            <h3 style="color: var(--spring-green);">Architecture</h3>
+            <ul style="font-size: 0.85em; line-height: 2;">
+                <li><a href="https://microservices.io/patterns/index.html">microservices.io &mdash; Patterns</a></li>
+                <li><a href="https://martinfowler.com/articles/microservices.html">Fowler &mdash; Microservices</a></li>
+                <li><a href="https://samnewman.io/books/building_microservices_2nd_edition/">Building Microservices (book)</a></li>
+                <li><a href="https://microservices.io/book">Microservices Patterns (book)</a></li>
+            </ul>
+        </div>
+    </div>
 </section>
 
 <section>

@@ -81,6 +81,11 @@ Key takeaways:
 
 ## Section 2: Building the Core Services (35 min)
 
+**Documentation:**
+- [Spring Boot Reference — Web](https://docs.spring.io/spring-boot/reference/web/servlet.html)
+- [Spring Data JPA — Reference](https://docs.spring.io/spring-data/jpa/reference/)
+- [RestClient — Spring Framework](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-restclient)
+
 ### Exercise 2A: Catalog REST API (10 min)
 
 Open `catalog-service/src/main/java/com/bookshop/catalog/book/BookController.java`
@@ -205,6 +210,12 @@ curl http://localhost:8082/api/orders
 
 ## Section 3: Service Discovery & API Gateway (30 min)
 
+**Documentation:**
+- [Spring Cloud Netflix Eureka — Service Discovery](https://docs.spring.io/spring-cloud-netflix/reference/spring-cloud-netflix.html)
+- [Spring Cloud Gateway Server MVC](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webmvc.html)
+- [Spring Cloud Gateway — Java Routes API](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webmvc/java-routes-api.html)
+- [Spring Cloud LoadBalancer](https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/loadbalancer.html)
+
 ### Exercise 3A: Register Services with Eureka (10 min)
 
 First, start the discovery server:
@@ -307,6 +318,11 @@ curl http://localhost:8080/api/orders
 
 ## Section 4: Centralized Configuration (15 min)
 
+**Documentation:**
+- [Spring Cloud Config — Server](https://docs.spring.io/spring-cloud-config/reference/server.html)
+- [Spring Cloud Config — Client](https://docs.spring.io/spring-cloud-config/reference/client.html)
+- [Spring Boot — Externalized Configuration](https://docs.spring.io/spring-boot/reference/features/external-config.html)
+
 ### Exercise 4A: Config Server Setup (10 min)
 
 Start the config server:
@@ -384,41 +400,55 @@ curl http://localhost:8081/api/greeting
 
 ## Section 5: Resilience Patterns (25 min)
 
-### Exercise 5A: Circuit Breaker (15 min)
+**Documentation:**
+- [Spring Framework — Resilience](https://docs.spring.io/spring-framework/reference/core/resilience.html)
+- [Spring Framework — @Retryable](https://docs.spring.io/spring-framework/reference/core/resilience.html#retryable)
+
+Spring Framework 7 includes **built-in retry support** via `@Retryable` — no external libraries needed.
+The `@EnableResilientMethods` configuration is already provided in `ResilientConfig.java`.
+
+### Exercise 5A: Add Retry to BookClient (15 min)
 
 Open `order-service/src/main/java/com/bookshop/order/client/BookClient.java`
 
-Complete **TODO 13** — Add circuit breaker to `getBookByIsbn`:
+Complete **TODO 13** — Add `@Retryable` to `getBookByIsbn`:
 
 ```java
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.resilience.annotation.Retryable;
 
-@CircuitBreaker(name = "catalogService", fallbackMethod = "getBookFallback")
+@Retryable(maxRetries = 3, delay = 500)
 public Optional<BookResponse> getBookByIsbn(String isbn) {
     // ... existing implementation
 }
 ```
 
-Complete **TODO 14** — Add fallback method:
+This will retry failed calls up to 3 times with a 500ms delay between attempts.
+
+### Exercise 5B: Add Fallback (10 min)
+
+Complete **TODO 14** — Add a fallback method for when all retries are exhausted:
 
 ```java
-private Optional<BookResponse> getBookFallback(String isbn, Throwable t) {
-    log.warn("Fallback: catalog-service unavailable for ISBN {}: {}", isbn, t.getMessage());
+public Optional<BookResponse> getBookByIsbnFallback(String isbn) {
+    log.warn("Fallback: catalog-service unavailable for ISBN {}", isbn);
     return Optional.empty();
 }
 ```
 
-### Exercise 5B: Retry (10 min)
-
-Complete **TODO 15** — Add retry:
+Then update the `getBookByIsbn` method to call the fallback in the catch block:
 
 ```java
-import io.github.resilience4j.retry.annotation.Retry;
-
-@CircuitBreaker(name = "catalogService", fallbackMethod = "getBookFallback")
-@Retry(name = "catalogService")
+@Retryable(maxRetries = 3, delay = 500)
 public Optional<BookResponse> getBookByIsbn(String isbn) {
-    // ... existing implementation
+    try {
+        BookResponse book = restClient.get()
+                .uri("/api/books/{isbn}", isbn)
+                .retrieve()
+                .body(BookResponse.class);
+        return Optional.ofNullable(book);
+    } catch (Exception e) {
+        return getBookByIsbnFallback(isbn);
+    }
 }
 ```
 
@@ -431,21 +461,26 @@ curl -X POST http://localhost:8080/api/orders \
   -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 1}]}'
 
 # Stop catalog-service (Ctrl+C)
-# Try placing another order — should fail gracefully
+# Try placing another order — should fail gracefully (fallback returns empty)
 curl -X POST http://localhost:8080/api/orders \
   -H "Content-Type: application/json" \
   -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 1}]}'
 
-# Check circuit breaker state
-curl http://localhost:8082/actuator/health
+# Check the logs — you should see retry attempts and fallback warnings
 ```
 
-> **Discussion point:** The circuit breaker opens after 50% of 5 calls fail. After 10 seconds, it moves to half-open and
-> allows 3 test calls. Tune these values based on your SLAs.
+> **Discussion point:** `@Retryable` is built into Spring Framework 7 — no external dependencies needed.
+> For more advanced patterns (circuit breaker state machine, bulkheads, rate limiters),
+> you can add Resilience4j as a library on top.
 
 ---
 
 ## Section 6: Observability (15 min)
+
+**Documentation:**
+- [Spring Boot Actuator — Production-ready Features](https://docs.spring.io/spring-boot/reference/actuator/index.html)
+- [Spring Boot — Structured Logging](https://docs.spring.io/spring-boot/reference/features/logging.html#features.logging.structured)
+- [Micrometer — Documentation](https://docs.micrometer.io/micrometer/reference/)
 
 ### Exercise 6A: Health Checks & Actuator (8 min)
 
@@ -454,7 +489,7 @@ Edit `order-service/src/main/resources/application.properties`
 Complete **TODO 16** — Expose actuator endpoints:
 
 ```properties
-management.endpoints.web.exposure.include=health,info,metrics,circuitbreakers,refresh
+management.endpoints.web.exposure.include=health,info,metrics,refresh
 management.endpoint.health.show-details=always
 ```
 
@@ -509,6 +544,10 @@ curl http://localhost:8082/actuator/metrics/orders.placed
 ---
 
 ## Section 7: Docker Compose (10 min)
+
+**Documentation:**
+- [Spring Boot — Docker Compose Support](https://docs.spring.io/spring-boot/reference/features/docker-compose.html)
+- [Docker Compose — Reference](https://docs.docker.com/compose/compose-file/)
 
 _Instructor demo — run the full system in containers._
 
@@ -572,9 +611,8 @@ Discussion topics:
 | 10   | `catalog-service.properties` (config-repo) | 4  | Move config to Config Server         |
 | 11   | `application.properties` (both)     | 4       | Config import (pre-configured)       |
 | 12   | `GreetingController.java`           | 4       | @RefreshScope + @Value               |
-| 13   | `BookClient.java`                   | 5       | @CircuitBreaker                      |
+| 13   | `BookClient.java`                   | 5       | @Retryable                           |
 | 14   | `BookClient.java`                   | 5       | Fallback method                      |
-| 15   | `BookClient.java`                   | 5       | @Retry                               |
 | 16   | `application.properties` (order)    | 6       | Actuator endpoints                   |
 | 17   | `application.properties` (order)    | 6       | Structured logging                   |
 | 18   | `OrderService.java`                 | 6       | Log statement                        |
@@ -598,3 +636,26 @@ least 3 failures in 5 calls.
 
 **Port already in use:**
 Kill the process using the port: `lsof -i :8081 | grep LISTEN` then `kill <PID>`
+
+---
+
+## Further Reading
+
+### Spring Boot & Spring Cloud
+- [Spring Boot Reference Documentation](https://docs.spring.io/spring-boot/reference/)
+- [Spring Cloud Reference Documentation](https://docs.spring.io/spring-cloud/reference/)
+- [Spring Cloud Netflix (Eureka)](https://docs.spring.io/spring-cloud-netflix/reference/)
+- [Spring Cloud Gateway](https://docs.spring.io/spring-cloud-gateway/reference/)
+- [Spring Cloud Config](https://docs.spring.io/spring-cloud-config/reference/)
+- [Spring Cloud Circuit Breaker](https://docs.spring.io/spring-cloud-circuitbreaker/reference/)
+
+### Resilience & Observability
+- [Spring Framework — Resilience](https://docs.spring.io/spring-framework/reference/core/resilience.html)
+- [Micrometer Documentation](https://docs.micrometer.io/micrometer/reference/)
+- [Spring Boot Actuator](https://docs.spring.io/spring-boot/reference/actuator/)
+
+### Architecture & Patterns
+- [microservices.io — Patterns](https://microservices.io/patterns/index.html)
+- [Martin Fowler — Microservices](https://martinfowler.com/articles/microservices.html)
+- [Sam Newman — Building Microservices (book)](https://samnewman.io/books/building_microservices_2nd_edition/)
+- [Chris Richardson — Microservices Patterns (book)](https://microservices.io/book)

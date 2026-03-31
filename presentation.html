@@ -385,8 +385,14 @@ mvn -pl catalog-service spring-boot:run</code></pre>
     </div>
     <br>
     <div class="callout-warning">
-        <strong>It's a trade-off, not an upgrade.</strong>yes
+        <strong>It's a trade-off, not an upgrade.</strong>
     </div>
+</section>
+
+<section>
+    <h2>Modularity and Distribution</h2>
+    <img src="images/modularity-distribution.png" alt="Modularity vs Distribution matrix: Modular monolith, Microservices, Monolithic big ball of mud, Distributed big ball of mud" style="max-height: 520px; border-radius: 8px;">
+    <p class="small">Goal: top-right (microservices). Avoid bottom-right (distributed big ball of mud).</p>
 </section>
 
 <section>
@@ -587,6 +593,10 @@ curl -X POST http://localhost:8082/api/orders \
   -d '{"items": [{"isbn": "978-0-13-468599-1", "quantity": 2}]}'</code></pre>
 </section>
 
+<section data-background-color="#191e1e">
+    <h2>Q &amp; A</h2>
+</section>
+
 <section>
     <h2>Discussion: What's Wrong?</h2>
     <pre><code class="language-java">this.restClient = builder
@@ -687,6 +697,10 @@ public RouterFunction&lt;ServerResponse&gt; gatewayRoutes() {
         );
 }</code></pre>
     <p class="small"><code>lb://</code> = client-side load balancing via Eureka</p>
+</section>
+
+<section data-background-color="#191e1e">
+    <h2>Q &amp; A</h2>
 </section>
 
 <!-- ==================== SECTION 4: CONFIG ==================== -->
@@ -887,6 +901,10 @@ curl -X POST http://localhost:8080/api/orders ...
 curl http://localhost:8082/actuator/health | jq .</code></pre>
 </section>
 
+<section data-background-color="#191e1e">
+    <h2>Q &amp; A</h2>
+</section>
+
 <!-- ==================== SECTION 6: OBSERVABILITY ==================== -->
 <section data-background-color="#191e1e">
     <h2>Section 6</h2>
@@ -1027,6 +1045,12 @@ docker compose up --build</code></pre>
     <div class="callout-warning">
         If you can't deploy a service independently,<br>it's not a microservice &mdash; it's a distributed monolith.
     </div>
+</section>
+
+<section>
+    <h2>Anti-Patterns</h2>
+    <img src="images/anti-patterns.png" alt="Anti-patterns: Integration Database shared across services, Monolithic frontend spanning multiple backends" style="max-height: 520px; border-radius: 8px;">
+    <p class="small"><strong>Integration Database</strong> &mdash; shared DB couples services. <strong>Monolithic Frontend</strong> &mdash; one UI negates backend independence.</p>
 </section>
 
 <section>

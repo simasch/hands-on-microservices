@@ -12,22 +12,8 @@ public class BookClient {
 
     private final RestClient restClient;
 
-    public BookClient(RestClient.Builder builder) {
-        this.restClient = builder
-                // ============================================================
-                // Section 2 - The base URL is hardcoded for now
-                // Section 3 - Exercise: You will change this to use service discovery
-                // ============================================================
-                .baseUrl("http://localhost:8081")
-                // ============================================================
-                // TODO 8: Replace this constructor to accept a pre-built RestClient:
-                //   Change constructor to: public BookClient(RestClient catalogRestClient)
-                //   And set: this.restClient = catalogRestClient;
-                //   Then create a @Configuration class RestClientConfig.java with a
-                //   @Bean that builds a load-balanced RestClient using LoadBalancerClient.
-                //   See the workshop guide for the full RestClientConfig code.
-                // ============================================================
-                .build();
+    public BookClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     public BookResponse getBookByIsbn(String isbn) {

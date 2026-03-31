@@ -1,0 +1,22 @@
+###
+GET http://localhost:8080/api/books
+
+###
+GET http://localhost:8080/api/books/978-1-61729-945-2
+
+
+###
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "isbn": "978-0-13-468599-1",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+GET http://localhost:8080/api/orders

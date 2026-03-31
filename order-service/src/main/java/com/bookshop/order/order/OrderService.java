@@ -29,23 +29,16 @@ public class OrderService {
     // Section 2 - Exercise: Place an Order
     // ============================================================
 
-    // TODO 4: Implement placeOrder(CreateOrderRequest request)
-    //   - For each item in request.items():
-    //     1. Call bookClient.getBookByIsbn(item.isbn())
-    //     2. If the book is not found, throw an IllegalArgumentException("Book not found: " + isbn)
-    //     3. Create an OrderItem with isbn, title, quantity, and price from the book
-    //   - Create and save the Order with all OrderItems
-    //   - Return the saved Order
-    //
-    //   Hint:
-    //     List<OrderItem> orderItems = new ArrayList<>();
-    //     for (var item : request.items()) {
-    //         BookResponse book = bookClient.getBookByIsbn(item.isbn());
-    //         orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
-    //     }
-    //     Order order = new Order(orderItems);
-    //     return orderRepository.save(order);
-    //
+    public Order placeOrder(CreateOrderRequest request) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (var item : request.items()) {
+            BookResponse book = bookClient.getBookByIsbn(item.isbn());
+            orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+        }
+        Order order = new Order(orderItems);
+        return orderRepository.save(order);
+    }
+
     // ============================================================
     // Section 5 - Exercise: Handle failures gracefully
     // ============================================================

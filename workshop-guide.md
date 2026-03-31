@@ -87,7 +87,7 @@ Key takeaways:
 - [Spring Boot Reference — Web](https://docs.spring.io/spring-boot/reference/web/servlet.html)
 - [Spring Data JPA — Reference](https://docs.spring.io/spring-data/jpa/reference/)
 - [RestClient — Spring Framework](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-restclient)
-
+  
 ### Exercise 2A: Catalog REST API (10 min)
 
 Open `catalog-service/src/main/java/com/bookshop/catalog/book/BookController.java`

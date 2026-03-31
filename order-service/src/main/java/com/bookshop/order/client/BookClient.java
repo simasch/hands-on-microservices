@@ -30,18 +30,13 @@ public class BookClient {
                 .build();
     }
 
-    // ============================================================
-    // Section 2 - Exercise: Inter-Service Communication
-    // ============================================================
+    public BookResponse getBookByIsbn(String isbn) {
+        return restClient.get()
+                .uri("/api/books/{isbn}", isbn)
+                .retrieve()
+                .body(BookResponse.class);
+    }
 
-    // TODO 3: Create a method to get a book by ISBN from catalog-service
-    //   Method signature: public BookResponse getBookByIsbn(String isbn)
-    //   Use restClient.get()
-    //       .uri("/api/books/{isbn}", isbn)
-    //       .retrieve()
-    //       .body(BookResponse.class)
-    //   Just return the result — don't catch exceptions here.
-    //
     // ============================================================
     // Section 5 - Exercise: Resilience Patterns
     // ============================================================

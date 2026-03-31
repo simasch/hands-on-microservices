@@ -77,7 +77,7 @@
         /* Code blocks */
         .reveal pre {
             width: 100%;
-            font-size: 0.52em;
+            font-size: 0.7em;
             border-radius: 8px;
             border: 1px solid var(--border-light);
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -181,7 +181,7 @@
         /* Architecture diagram */
         .arch-diagram {
             text-align: left;
-            font-size: 0.48em;
+            font-size: 0.95em;
             background: var(--bg-code);
             padding: 24px;
             border-radius: 12px;
@@ -313,6 +313,34 @@ mvn -pl catalog-service spring-boot:run</code></pre>
     <p class="small">Open <code>http://localhost:8081/api/books</code> &mdash; expect a 404 (not implemented yet)</p>
 </section>
 
+<section>
+    <h2>Repository Branches</h2>
+    <div class="two-col">
+        <div>
+            <h3 style="color: var(--spring-green);">main</h3>
+            <p>Your <strong>starting point</strong></p>
+            <ul>
+                <li>Project skeleton with TODOs</li>
+                <li>Follow along and implement</li>
+            </ul>
+            <pre><code class="language-bash">git checkout main</code></pre>
+        </div>
+        <div>
+            <h3 style="color: var(--info-blue);">solution</h3>
+            <p>The <strong>complete solution</strong></p>
+            <ul>
+                <li>All TODOs implemented</li>
+                <li>Use as reference if you get stuck</li>
+            </ul>
+            <pre><code class="language-bash">git checkout solution</code></pre>
+        </div>
+    </div>
+    <br>
+    <div class="callout-warning">
+        <strong>Start on <code>main</code></strong> &mdash; only peek at <code>solution</code> when needed!
+    </div>
+</section>
+
 <!-- ==================== SECTION 1: MENTAL MODEL ==================== -->
 <section data-background-color="#191e1e">
     <h2>Section 1</h2>
@@ -357,7 +385,7 @@ mvn -pl catalog-service spring-boot:run</code></pre>
     </div>
     <br>
     <div class="callout-warning">
-        <strong>It's a trade-off, not an upgrade.</strong>
+        <strong>It's a trade-off, not an upgrade.</strong>yes
     </div>
 </section>
 
@@ -374,6 +402,67 @@ mvn -pl catalog-service spring-boot:run</code></pre>
         Don't use microservices because they're trendy.<br>
         Use them when the organizational and scaling benefits outweigh the complexity.
     </blockquote>
+</section>
+
+<section>
+    <h2>Microservices Patterns</h2>
+    <div class="two-col">
+        <div>
+            <h3 style="color: var(--spring-green);">Design</h3>
+            <ul>
+                <li>Decompose by business capability</li>
+                <li>Decompose by subdomain</li>
+                <li>Strangler Fig / Anti-corruption layer</li>
+                <li><span class="highlight">Database per Service</span> &#10004;</li>
+            </ul>
+            <h3 style="color: var(--spring-green);">Communication</h3>
+            <ul>
+                <li><span class="highlight">API Gateway / BFF</span> &#10004;</li>
+                <li><span class="highlight">Service Discovery</span> &#10004;</li>
+                <li>Messaging &amp; Domain Events</li>
+            </ul>
+        </div>
+        <div>
+            <h3 style="color: var(--info-blue);">Data</h3>
+            <ul>
+                <li>Saga (distributed transactions)</li>
+                <li>CQRS / Event Sourcing</li>
+                <li>Transactional Outbox</li>
+            </ul>
+            <h3 style="color: var(--info-blue);">Operations</h3>
+            <ul>
+                <li><span class="highlight">Circuit Breaker</span> &#10004;</li>
+                <li><span class="highlight">Externalized Configuration</span> &#10004;</li>
+                <li><span class="highlight">Distributed Tracing</span> &#10004;</li>
+                <li><span class="highlight">Health Check API</span> &#10004;</li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <p class="small"><a href="https://microservices.io/patterns/index.html" target="_blank">microservices.io/patterns</a> &mdash; comprehensive pattern catalog by Chris Richardson</p>
+</section>
+
+<section>
+    <h2>Spring Cloud</h2>
+    <p>Ready-made implementations for common microservices patterns</p>
+    <div class="two-col">
+        <div>
+            <ul>
+                <li><span class="highlight">Spring Cloud Config</span> &#10004;<br><span class="small">Centralized externalized configuration</span></li>
+                <li><span class="highlight">Spring Cloud Netflix (Eureka)</span> &#10004;<br><span class="small">Service discovery &amp; registration</span></li>
+                <li><span class="highlight">Spring Cloud Gateway</span> &#10004;<br><span class="small">API gateway with routing &amp; filters</span></li>
+            </ul>
+        </div>
+        <div>
+            <ul>
+                <li>Spring Cloud CircuitBreaker<br><span class="small">Resilience abstraction (Resilience4j)</span></li>
+                <li>Spring Cloud Stream<br><span class="small">Event-driven messaging (Kafka, RabbitMQ)</span></li>
+                <li>Spring Cloud Consul / Kubernetes<br><span class="small">Alternative service discovery</span></li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <p class="small"><a href="https://spring.io/projects/spring-cloud" target="_blank">spring.io/projects/spring-cloud</a> &mdash; umbrella project for microservices infrastructure</p>
 </section>
 
 <section>
@@ -699,6 +788,62 @@ curl http://localhost:8081/api/greeting
 @EnableResilientMethods
 public class ResilientConfig {
 }  // already provided in the project</code></pre>
+</section>
+
+<section>
+    <h2>Resilience4j</h2>
+    <p>Lightweight, standalone fault-tolerance library (no Spring required)</p>
+    <div class="two-col">
+        <div>
+            <ul>
+                <li><span class="highlight">CircuitBreaker</span> &mdash; stop calling a failing service</li>
+                <li><span class="highlight">Retry</span> &mdash; retry failed calls with backoff</li>
+                <li><span class="highlight">RateLimiter</span> &mdash; limit calls per period</li>
+            </ul>
+        </div>
+        <div>
+            <ul>
+                <li><span class="highlight">TimeLimiter</span> &mdash; timeout long-running calls</li>
+                <li><span class="highlight">Bulkhead</span> &mdash; isolate failures, limit concurrency</li>
+                <li><span class="highlight">Cache</span> &mdash; cache successful results</li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <p class="small">Patterns compose via decorators &mdash; <a href="https://resilience4j.readme.io/" target="_blank">resilience4j.readme.io</a></p>
+</section>
+
+<section>
+    <h2>Circuit Breaker Pattern</h2>
+    <p>Prevents cascading failures by <span class="highlight">short-circuiting</span> calls to a failing service</p>
+    <div class="two-col">
+        <div>
+            <pre style="font-size: 0.65em;"><code>  CLOSED          OPEN         HALF-OPEN
+ ┌──────┐      ┌──────┐      ┌──────────┐
+ │calls │      │fails │      │ allow    │
+ │pass  │─────►│fast  │─────►│ trial    │
+ │thru  │ fail │      │ wait │ calls    │
+ └──────┘ rate └──────┘ time └────┬─────┘
+     ▲                        ok? │ fail?
+     └────────────────────────────┘   │
+                                      ▼
+                                   OPEN</code></pre>
+        </div>
+        <div>
+            <ul>
+                <li><strong>Closed</strong> &mdash; requests flow normally</li>
+                <li><strong>Open</strong> &mdash; fail fast, don't call downstream</li>
+                <li><strong>Half-Open</strong> &mdash; let a few trial requests through</li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <pre><code class="language-java">@CircuitBreaker(name = "catalog", fallbackMethod = "fallback")
+@Retry(name = "catalog")
+public BookResponse getBook(String isbn) {
+    return restClient.get().uri("/api/books/{isbn}", isbn)
+            .retrieve().body(BookResponse.class);
+}</code></pre>
 </section>
 
 <section>

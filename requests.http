@@ -1,11 +1,11 @@
-###
+### GET ALL BOOKS
 GET http://localhost:8080/api/books
 
-###
+### GET BOOK BY ISBN
 GET http://localhost:8080/api/books/978-1-61729-945-2
 
 
-###
+### CREATE ORDER
 POST http://localhost:8080/api/orders
 Content-Type: application/json
 
@@ -18,16 +18,16 @@ Content-Type: application/json
   ]
 }
 
-###
+### GET ALL ORDERS
 GET http://localhost:8080/api/orders
 
-###
+### GET GREETING
 GET http://localhost:8081/api/greeting
 
-###
+### REFRESH CONFIG
 POST http://localhost:8081/actuator/refresh
 
-###
+### GET GREETING
 GET http://localhost:8081/api/greeting
 
 ###

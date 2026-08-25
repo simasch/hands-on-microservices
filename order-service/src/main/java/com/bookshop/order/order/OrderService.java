@@ -47,6 +47,8 @@ public class OrderService {
     //     return orderRepository.save(order);
     //
     public Order placeOrder(CreateOrderRequest request) {
+        log.info("Placing order for {} items", request.items().size());
+
         List<OrderItem> orderItems = new ArrayList<>();
         for (var item : request.items()) {
             try {
@@ -58,7 +60,9 @@ public class OrderService {
             }
         }
         Order order = new Order(orderItems);
-        return orderRepository.save(order);
+        Order saved = orderRepository.save(order);
+        meterRegistry.counter("orders.placed", "status", "success").increment();
+        return saved;
     }
 
     // ============================================================

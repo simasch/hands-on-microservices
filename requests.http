@@ -25,3 +25,9 @@ GET http://localhost:8081/api/greeting
 
 ### Refresh
 POST http://localhost:8081/actuator/refresh
+
+### Order Health Check
+http://localhost:8082/actuator/health
+
+### Orders Placed Metrics
+http://localhost:8082/actuator/metrics/orders.placed

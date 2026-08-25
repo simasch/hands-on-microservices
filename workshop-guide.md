@@ -612,11 +612,7 @@ Complete **TODO 19** in `OrderService.java` — Add counter after save:
 ```java
 Order order = new Order(orderItems);
 Order saved = orderRepository.save(order);
-meterRegistry.
-
-counter("orders.placed","status","success").
-
-increment();
+meterRegistry.counter("orders.placed","status","success").increment();
 return saved;
 ```
 

@@ -48,9 +48,24 @@ We're building an **Online Bookstore** with these services:
 | catalog-service  | 8081 | Book CRUD (H2 database)       |
 | order-service    | 8082 | Order placement (H2 database) |
 
+## Schedule
+
+All times **CEST**. Total: 175 minutes.
+
+| Time          | Block                              | Sections                              |
+|---------------|------------------------------------|---------------------------------------|
+| 15:35 – 16:20 | Microservices Foundations (45 min) | 0 (5) · 1 (15) · 2 (25)               |
+| 16:20 – 16:30 | Q & A (10 min)                     | —                                     |
+| 16:30 – 17:00 | Service Discovery & API Gateway (30 min) | 3 (30)                          |
+| 17:00 – 17:10 | Q & A (10 min)                     | —                                     |
+| 17:10 – 17:40 | Configuration & Resilience (30 min) | 4 (15) · 5 (15)                      |
+| 17:40 – 17:50 | Q & A (10 min)                     | —                                     |
+| 17:50 – 18:20 | Observability & Wrap-up (30 min)   | 6 (20) · 7 (5) · 8 (5)                |
+| 18:20 – 18:30 | Final Discussion & Open Q & A (10 min) | continues Section 8               |
+
 ---
 
-## Section 0: Setup Verification (10 min)
+## Section 0: Setup Verification (5 min)
 
 Verify your environment by building and running the catalog service:
 
@@ -81,14 +96,16 @@ Key takeaways:
 
 ---
 
-## Section 2: Building the Core Services (35 min)
+## Section 2: Building the Core Services (25 min)
+
+_Teaching 5 min &bull; Hands-on 20 min._
 
 **Documentation:**
 - [Spring Boot Reference — Web](https://docs.spring.io/spring-boot/reference/web/servlet.html)
 - [Spring Data JPA — Reference](https://docs.spring.io/spring-data/jpa/reference/)
 - [RestClient — Spring Framework](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-restclient)
 
-### Exercise 2A: Catalog REST API (10 min)
+### Exercise 2A: Catalog REST API (6 min)
 
 Open `catalog-service/src/main/java/com/bookshop/catalog/book/BookController.java`
 
@@ -125,7 +142,7 @@ curl http://localhost:8081/api/books
 curl http://localhost:8081/api/books/978-0-13-468599-1
 ```
 
-### Exercise 2B: Inter-Service Communication (10 min)
+### Exercise 2B: Inter-Service Communication (5 min)
 
 Open `order-service/src/main/java/com/bookshop/order/client/BookClient.java`
 
@@ -143,7 +160,7 @@ public BookResponse getBookByIsbn(String isbn) {
 > **Note:** Don't catch exceptions here — the method stays clean. In Section 5, `@Retryable` will handle
 > transient failures, and in `OrderService` we'll handle the case when catalog-service is truly unavailable.
 
-### Exercise 2C: Order Business Logic (10 min)
+### Exercise 2C: Order Business Logic (5 min)
 
 Open `order-service/src/main/java/com/bookshop/order/order/OrderService.java`
 
@@ -161,7 +178,7 @@ public Order placeOrder(CreateOrderRequest request) {
 }
 ```
 
-### Exercise 2D: Order REST API (5 min)
+### Exercise 2D: Order REST API (4 min)
 
 Open `order-service/src/main/java/com/bookshop/order/order/OrderController.java`
 
@@ -203,11 +220,15 @@ curl http://localhost:8082/api/orders
 
 ---
 
-## BREAK (10 min)
+## Q & A (10 min)
+
+_16:20 – 16:30 CEST._
 
 ---
 
 ## Section 3: Service Discovery & API Gateway (30 min)
+
+_Teaching 10 min &bull; Hands-on 20 min._
 
 **Documentation:**
 - [Spring Cloud Netflix Eureka — Service Discovery](https://docs.spring.io/spring-cloud-netflix/reference/spring-cloud-netflix.html)
@@ -215,7 +236,7 @@ curl http://localhost:8082/api/orders
 - [Spring Cloud Gateway — Java Routes API](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webmvc/java-routes-api.html)
 - [Spring Cloud LoadBalancer](https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/loadbalancer.html)
 
-### Exercise 3A: Register Services with Eureka (10 min)
+### Exercise 3A: Register Services with Eureka (6 min)
 
 First, start the discovery server:
 
@@ -236,7 +257,7 @@ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
 
 Restart both services and check the Eureka dashboard — both should appear.
 
-### Exercise 3B: Use Service Discovery in BookClient (10 min)
+### Exercise 3B: Use Service Discovery in BookClient (7 min)
 
 Complete **TODO 8** in `BookClient.java`:
 
@@ -317,7 +338,7 @@ public class RestClientConfig {
 > communication, preventing service registration. Using `LoadBalancerClient` directly scopes load balancing to only
 > our catalog service calls.
 
-### Exercise 3C: API Gateway Routes (15 min)
+### Exercise 3C: API Gateway Routes (7 min)
 
 Open `api-gateway/src/main/java/com/bookshop/gateway/GatewayRouteConfig.java`
 
@@ -365,14 +386,22 @@ curl http://localhost:8080/api/orders
 
 ---
 
+## Q & A (10 min)
+
+_17:00 – 17:10 CEST._
+
+---
+
 ## Section 4: Centralized Configuration (15 min)
+
+_Teaching 5 min &bull; Hands-on 10 min._
 
 **Documentation:**
 - [Spring Cloud Config — Server](https://docs.spring.io/spring-cloud-config/reference/server.html)
 - [Spring Cloud Config — Client](https://docs.spring.io/spring-cloud-config/reference/client.html)
 - [Spring Boot — Externalized Configuration](https://docs.spring.io/spring-boot/reference/features/external-config.html)
 
-### Exercise 4A: Config Server Setup (10 min)
+### Exercise 4A: Config Server Setup (4 min)
 
 Start the config server:
 
@@ -394,7 +423,7 @@ spring.jpa.hibernate.ddl-auto=create-drop
 app.greeting=Hello from Config Server!
 ```
 
-### Exercise 4B: Understand the Config Client (5 min)
+### Exercise 4B: Understand the Config Client (2 min)
 
 Look at `catalog-service/src/main/resources/application.properties` — notice the `spring.config.import` property:
 
@@ -407,7 +436,7 @@ is running, **restart catalog-service** and it will pick up the configuration fr
 
 Verify by checking: http://localhost:8888/catalog-service/default — you should see the config values you added.
 
-### Exercise 4C: Dynamic Refresh (10 min)
+### Exercise 4C: Dynamic Refresh (4 min)
 
 Open `catalog-service/src/main/java/com/bookshop/catalog/book/GreetingController.java`
 
@@ -447,7 +476,9 @@ curl http://localhost:8081/api/greeting
 
 ---
 
-## Section 5: Resilience Patterns (25 min)
+## Section 5: Resilience Patterns (15 min)
+
+_Teaching 5 min &bull; Hands-on 10 min._
 
 **Documentation:**
 - [Spring Framework — Resilience](https://docs.spring.io/spring-framework/reference/core/resilience.html)
@@ -456,7 +487,7 @@ curl http://localhost:8081/api/greeting
 Spring Framework 7 includes **built-in retry support** via `@Retryable` — no external libraries needed.
 The `@EnableResilientMethods` configuration is already provided in `ResilientConfig.java`.
 
-### Exercise 5A: Add Retry to BookClient (15 min)
+### Exercise 5A: Add Retry to BookClient (6 min)
 
 Open `order-service/src/main/java/com/bookshop/order/client/BookClient.java`
 
@@ -480,7 +511,7 @@ public BookResponse getBookByIsbn(String isbn) {
 The method stays clean — no try/catch. `@Retryable` handles retries transparently. If all retries
 fail, the exception propagates to the caller.
 
-### Exercise 5B: Handle Failure in OrderService (10 min)
+### Exercise 5B: Handle Failure in OrderService (4 min)
 
 Open `order-service/src/main/java/com/bookshop/order/order/OrderService.java`
 
@@ -524,7 +555,13 @@ curl -X POST http://localhost:8080/api/orders \
 
 ---
 
-## Section 6: Observability (15 min)
+## Q & A (10 min)
+
+_17:40 – 17:50 CEST._
+
+---
+
+## Section 6: Observability (20 min)
 
 **Documentation:**
 - [Spring Boot Actuator — Production-ready Features](https://docs.spring.io/spring-boot/reference/actuator/index.html)
@@ -592,7 +629,7 @@ curl http://localhost:8082/actuator/metrics/orders.placed
 
 ---
 
-## Section 7: Docker Compose (10 min)
+## Section 7: Docker Compose (5 min)
 
 **Documentation:**
 - [Spring Boot — Docker Compose Support](https://docs.spring.io/spring-boot/reference/features/docker-compose.html)
@@ -624,7 +661,7 @@ curl -X POST http://localhost:8080/api/orders \
 
 ---
 
-## Section 8: When (Not) to Use Microservices (15 min)
+## Section 8: When (Not) to Use Microservices (5 min)
 
 _Instructor-led discussion & Q&A._
 
@@ -641,6 +678,8 @@ Discussion topics:
     - Distributed tracing (Zipkin/Tempo)
     - Kubernetes deployment
 - Recommended next steps
+
+_Continues into the **Final Discussion & Open Q & A** (18:20 – 18:30 CEST)._
 
 ---
 

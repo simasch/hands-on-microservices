@@ -2,6 +2,7 @@ package com.bookshop.order.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -28,6 +29,7 @@ public class BookClient {
     //       .body(BookResponse.class)
     //   Just return the result — don't catch exceptions here.
     //
+    @Retryable(maxRetries = 3, delay = 500)
     public BookResponse getBookByIsbn(String isbn) {
         return restClient.get()
                 .uri("/api/books/{isbn}", isbn)

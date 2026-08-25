@@ -49,8 +49,13 @@ public class OrderService {
     public Order placeOrder(CreateOrderRequest request) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (var item : request.items()) {
-            BookResponse book = bookClient.getBookByIsbn(item.isbn());
-            orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+            try {
+                BookResponse book = bookClient.getBookByIsbn(item.isbn());
+                orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+            } catch (Exception e) {
+                log.warn("Could not validate book {}: {}", item.isbn(), e.getMessage());
+                throw new IllegalStateException("catalog-service unavailable, please try again later");
+            }
         }
         Order order = new Order(orderItems);
         return orderRepository.save(order);

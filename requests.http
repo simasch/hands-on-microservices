@@ -19,3 +19,9 @@ Content-Type: application/json
     }
   ]
 }
+
+### Get Greeting
+GET http://localhost:8081/api/greeting
+
+### Refresh
+POST http://localhost:8081/actuator/refresh

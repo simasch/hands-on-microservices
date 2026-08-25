@@ -1,14 +1,14 @@
 ### GET Books
-GET http://localhost:8081/api/books
+GET http://localhost:8080/api/books
 
 ### GET Book by ISBN
-GET http://localhost:8081/api/books/978-0-13-468599-1
+GET http://localhost:8080/api/books/978-0-13-468599-1
 
 ### Get Orders
-GET http://localhost:8082/api/orders
+GET http://localhost:8080/api/orders
 
 ### Create Order
-POST http://localhost:8082/api/orders
+POST http://localhost:8080/api/orders
 Content-Type: application/json
 
 {

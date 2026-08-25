@@ -57,4 +57,24 @@ public class GatewayRouteConfig {
     //
     //   Note: lb() uses client-side load balancing via Eureka to resolve service names
     // ============================================================
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRoutes() {
+        return route("catalog_route")
+                .GET("/api/books/**", http())
+                .filter(lb("catalog-service"))
+                .build()
+                .and(
+                        route("order_post_route")
+                                .POST("/api/orders", http())
+                                .filter(lb("order-service"))
+                                .build()
+                )
+                .and(
+                        route("order_get_route")
+                                .GET("/api/orders", http())
+                                .filter(lb("order-service"))
+                                .build()
+                );
+    }
 }

@@ -1,0 +1,33 @@
+###
+GET http://localhost:8081/api/books
+
+<> 2026-08-25T155826.200.json
+
+###
+GET http://localhost:8081/api/books/978-0-13-468599-1
+
+###
+GET http://localhost:8082/api/orders
+Content-Type: application/json
+
+{
+  "items": []
+}
+
+<> 2026-08-25T160924.200.json
+<> 2026-08-25T160827.200.json
+
+###
+POST http://localhost:8082/api/orders
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "isbn": "978-0-13-468599-1",
+      "quantity": 2
+    }
+  ]
+}
+
+<> 2026-08-25T160922.200.json

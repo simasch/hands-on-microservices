@@ -46,6 +46,16 @@ public class OrderService {
     //     Order order = new Order(orderItems);
     //     return orderRepository.save(order);
     //
+    public Order placeOrder(CreateOrderRequest request) {
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (var item : request.items()) {
+            BookResponse book = bookClient.getBookByIsbn(item.isbn());
+            orderItems.add(new OrderItem(book.isbn(), book.title(), item.quantity(), book.price()));
+        }
+        Order order = new Order(orderItems);
+        return orderRepository.save(order);
+    }
+
     // ============================================================
     // Section 5 - Exercise: Handle failures gracefully
     // ============================================================

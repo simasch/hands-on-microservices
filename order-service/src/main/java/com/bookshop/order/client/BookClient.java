@@ -42,6 +42,13 @@ public class BookClient {
     //       .body(BookResponse.class)
     //   Just return the result — don't catch exceptions here.
     //
+    public BookResponse getBookByIsbn(String isbn) {
+        return restClient.get()
+                .uri("/api/books/{isbn}", isbn)
+                .retrieve()
+                .body(BookResponse.class);
+    }
+
     // ============================================================
     // Section 5 - Exercise: Resilience Patterns
     // ============================================================
